@@ -1,0 +1,24 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model user {
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  password       String
+  name           String
+  dateOfBirth    DateTime
+  phoneNumber    String
+  identification String
+  isVerified     Boolean
+  role           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
