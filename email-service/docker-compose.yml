@@ -1,0 +1,13 @@
+services:
+  email-service:
+    build: .
+    ports:
+      - "4000:4000" # Expose email-service on port 4000
+    env_file:
+      - .env # Points to email-service's .env file
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true # Shared external network for cross-service communication
