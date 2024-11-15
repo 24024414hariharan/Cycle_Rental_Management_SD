@@ -1,0 +1,27 @@
+services:
+  user-service:
+    build: .
+    ports:
+      - "3000:3000" # Expose user-service on port 3000
+    env_file:
+      - .env # Points to user-service's .env file
+    depends_on:
+      - mongo # Only mongo is managed within this file
+    networks:
+      - app-network
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017" # Exposes MongoDB on port 27017
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true # Shared external network for cross-service communication
+
+volumes:
+  mongo_data: # Persistent volume for MongoDB data
