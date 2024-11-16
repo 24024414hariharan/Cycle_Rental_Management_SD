@@ -1,11 +1,7 @@
 import { Request, Response } from "express";
 import EmailService from "../services/emailService";
 
-export const sendVerificationEmail = async (
-  req: Request,
-  res: Response,
-  emailService: EmailService = new EmailService() // Allow dependency injection
-) => {
+export const sendVerificationEmail = async (req: Request, res: Response) => {
   const { to, subject, verificationUrl } = req.body;
 
   if (!to || !subject || !verificationUrl) {
@@ -19,7 +15,7 @@ export const sendVerificationEmail = async (
   }
 
   try {
-    await emailService.sendCustomEmail(to, subject, verificationUrl);
+    await new EmailService().sendCustomEmail(to, subject, verificationUrl);
     return res
       .status(200)
       .json({ message: "Verification email sent successfully" });
