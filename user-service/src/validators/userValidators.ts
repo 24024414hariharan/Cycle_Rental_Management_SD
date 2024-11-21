@@ -1,13 +1,12 @@
-// src/validators/userValidators.ts
 import { body } from "express-validator";
 
 // Validation for user registration
 export const registerValidator = [
-  body("email").isEmail().withMessage("Must be a valid email"),
+  body("email").isEmail().withMessage("Must be a valid email").trim(),
 
   body("password")
-    .isLength({ min: 8 })
-    .withMessage("Password must be at least 8 characters long")
+    .isLength({ min: 8, max: 32 })
+    .withMessage("Password must be 8-32 characters long")
     .matches(/[A-Z]/)
     .withMessage("Password must contain an uppercase letter")
     .matches(/[a-z]/)
@@ -17,19 +16,93 @@ export const registerValidator = [
     .matches(/[@$!%*?&#]/)
     .withMessage("Password must contain a special character"),
 
-  body("name").notEmpty().withMessage("Name is required"),
+  body("name").notEmpty().withMessage("Name is required").trim(),
 
   body("dateOfBirth")
     .isISO8601()
     .withMessage("Invalid date format, please use YYYY-MM-DD")
-    .toDate(),
+    .toDate()
+    .custom((value) => {
+      const age = new Date().getFullYear() - value.getFullYear();
+      if (age < 18) {
+        throw new Error("You must be at least 18 years old");
+      }
+      return true;
+    }),
 
-  body("phoneNumber").isMobilePhone("any").withMessage("Invalid phone number"),
+  body("phoneNumber")
+    .isMobilePhone("any")
+    .withMessage("Invalid phone number")
+    .isLength({ min: 10, max: 15 })
+    .withMessage("Phone number must be between 10-15 digits")
+    .trim(),
 
-  body("identification").notEmpty().withMessage("Identification is required"),
+  body("identification")
+    .notEmpty()
+    .withMessage("Identification is required")
+    .trim(),
+
+  body("role")
+    .optional()
+    .isIn(["ADMIN", "CUSTOMER", "INVENTORYMANAGER"])
+    .withMessage("Invalid role provided"),
 ];
 
+// Validation for user login
 export const loginValidator = [
-  body("email").isEmail().withMessage("Must be a valid email"),
-  body("password").notEmpty().withMessage("Password is required"),
+  body("email").isEmail().withMessage("Must be a valid email").trim(),
+
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 8, max: 32 })
+    .withMessage("Password must be 8-32 characters long"),
 ];
+
+// Validation for resetting password
+export const resetPasswordValidator = [
+  body("token").notEmpty().withMessage("Reset token is required"),
+
+  body("newPassword")
+    .isLength({ min: 8, max: 32 })
+    .withMessage("Password must be 8-32 characters long")
+    .matches(/[A-Z]/)
+    .withMessage("Password must contain an uppercase letter")
+    .matches(/[a-z]/)
+    .withMessage("Password must contain a lowercase letter")
+    .matches(/[0-9]/)
+    .withMessage("Password must contain a number")
+    .matches(/[@$!%*?&#]/)
+    .withMessage("Password must contain a special character"),
+];
+
+// Validation for deactivating an account (Admin action)
+export const deactivateAccountValidator = [
+  body("userId").isInt({ gt: 0 }).withMessage("A valid user ID is required"),
+];
+
+// Validation for closing an account (Self-action)
+export const closeAccountValidator = [
+  body("confirmation")
+    .equals("CLOSE")
+    .withMessage("You must type 'CLOSE' to confirm account deletion"),
+];
+
+// Validation for updating a user role (Admin action)
+export const updateRoleValidator = [
+  body("userId").isInt({ gt: 0 }).withMessage("A valid user ID is required"),
+
+  body("role")
+    .isIn(["ADMIN", "CUSTOMER", "INVENTORYMANAGER"])
+    .withMessage("Invalid role provided"),
+];
+
+// Export all validators
+export default {
+  registerValidator,
+  loginValidator,
+  resetPasswordValidator,
+  deactivateAccountValidator,
+  closeAccountValidator,
+  updateRoleValidator,
+};
