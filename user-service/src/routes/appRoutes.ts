@@ -1,8 +1,7 @@
 import { Router } from "express";
-import userRouter from "./userRoutes";
+import userRoutes from "./userRoutes";
 
-const appRouter = Router();
+const appRoutes = Router();
+appRoutes.use("/users", userRoutes);
 
-appRouter.use("/users", userRouter);
-
-export default appRouter;
+export default appRoutes;
