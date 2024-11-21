@@ -42,24 +42,34 @@ class EmailServiceClient {
     }
   }
 
-  async sendVerificationEmail(to: string, verificationUrl: string) {
+  async sendVerificationEmail(
+    to: string,
+    verificationUrl: string,
+    name: string
+  ) {
     await this.sendEmail(to, "Verify Your Email", "verification", {
       url: verificationUrl,
+      name: name,
     });
   }
 
-  async sendPasswordResetEmail(to: string, resetUrl: string) {
+  async sendPasswordResetEmail(to: string, resetUrl: string, name: string) {
     await this.sendEmail(to, "Reset Your Password", "passwordReset", {
       url: resetUrl,
+      name: name,
     });
   }
 
-  async sendAccountDeletionEmail(to: string) {
-    await this.sendEmail(to, "Account Deleted", "accountDeletion", {});
+  async sendAccountDeletionEmail(to: string, name: string) {
+    await this.sendEmail(to, "Account Deleted", "accountDeletion", {
+      name: name,
+    });
   }
 
-  async sendAccountDeactivationEmail(to: string) {
-    await this.sendEmail(to, "Account Deactivated", "accountDeactivation", {});
+  async sendAccountDeactivationEmail(to: string, name: string) {
+    await this.sendEmail(to, "Account Deactivated", "accountDeactivation", {
+      name: name,
+    });
   }
 
   async sendRoleUpdateEmail(to: string, name: string, role: string) {
