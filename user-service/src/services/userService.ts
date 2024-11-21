@@ -18,17 +18,17 @@ import EmailServiceClient from "../clients/EmailServiceClient";
 class UserService {
   async register(userData: IUserRegistrationData): Promise<void> {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
-
     const newUser = await prisma.user.create({
       data: { ...userData, password: hashedPassword },
     });
 
     const verificationToken = generateVerificationToken(newUser.id.toString());
-    const verificationUrl = `${process.env.BASE_URL}/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${process.env.BASE_URL}/api/users/verify-email?token=${verificationToken}`;
 
     await EmailServiceClient.sendVerificationEmail(
       newUser.email,
-      verificationUrl
+      verificationUrl,
+      newUser.name
     );
     console.log(`Verification Email Sent: ${verificationUrl}`);
   }
@@ -67,7 +67,7 @@ class UserService {
     if (!user) return;
 
     const resetToken = generateVerificationToken(user.id.toString());
-    const resetUrl = `${process.env.BASE_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.BASE_URL}/api/users/reset-password?token=${resetToken}`;
 
     await prisma.user.update({
       where: { id: user.id },
@@ -77,7 +77,11 @@ class UserService {
       },
     });
 
-    await EmailServiceClient.sendPasswordResetEmail(user.email, resetUrl);
+    await EmailServiceClient.sendPasswordResetEmail(
+      user.email,
+      resetUrl,
+      user.name
+    );
 
     console.log(`Password Reset Link: ${resetUrl}`);
   }
@@ -131,7 +135,10 @@ class UserService {
       data: { isActive: false },
     });
 
-    await EmailServiceClient.sendAccountDeactivationEmail(user.email);
+    await EmailServiceClient.sendAccountDeactivationEmail(
+      user.email,
+      user.name
+    );
   }
 
   async deleteAccount(userId: number): Promise<void> {
@@ -140,7 +147,7 @@ class UserService {
 
     await prisma.user.delete({ where: { id: userId } });
 
-    await EmailServiceClient.sendAccountDeletionEmail(user.email);
+    await EmailServiceClient.sendAccountDeletionEmail(user.email, user.name);
   }
 
   async getUserById(userId: number): Promise<IUser | null> {

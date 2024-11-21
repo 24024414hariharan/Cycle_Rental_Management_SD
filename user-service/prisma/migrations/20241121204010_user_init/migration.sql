@@ -1,14 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the `user` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('ADMIN', 'CUSTOMER', 'INVENTORY_MANAGER');
-
--- DropTable
-DROP TABLE "user";
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'CUSTOMER', 'INVENTORYMANAGER');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -20,7 +11,7 @@ CREATE TABLE "User" (
     "phoneNumber" TEXT NOT NULL,
     "identification" TEXT NOT NULL,
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
-    "role" "Role" NOT NULL,
+    "role" "Role" NOT NULL DEFAULT 'CUSTOMER',
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
