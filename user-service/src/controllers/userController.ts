@@ -4,6 +4,7 @@ import { validationResult } from "express-validator";
 import { AppError } from "../middleware/errorHandler";
 import { generateSessionToken } from "../utils/tokenUtil";
 import subscriptionServiceClient from "../clients/SubscriptionServiceClient";
+import { IUserUpdateData } from "../dtos/UserRegistrationDTO";
 
 // Register user
 export const register = async (
@@ -58,6 +59,7 @@ export const login = async (
 
     // Generate session token
     const token = generateSessionToken(user.id.toString(), user.role);
+
     res
       .cookie("token", token, {
         httpOnly: true,
@@ -203,25 +205,66 @@ export const getProfile = async (
   next: NextFunction
 ) => {
   try {
-    const profile = await userService.getUserById(req.user?.userId!);
-    res.json(profile);
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      throw new AppError("Unauthorized: User information missing.", 401);
+    }
+
+    const user = await userService.getUserById(userId);
+
+    if (!user) {
+      throw new AppError("User not found.", 404);
+    }
+
+    const profile = {
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+    };
+
+    res.status(200).json({ status: "success", data: profile });
   } catch (error) {
     next(error);
   }
 };
 
-// Update user profile
 export const updateProfile = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const updatedUser = await userService.updateUser(
-      req.user?.userId!,
-      req.body
+    const userId = req.user?.userId!;
+    const updateData: Partial<IUserUpdateData> = req.body;
+
+    // Define allowed fields for updates
+    const allowedFields: Array<keyof IUserUpdateData> = [
+      "name",
+      "email",
+      "phoneNumber",
+      "dateOfBirth",
+    ];
+
+    // Filter only allowed fields
+    const filteredData: Partial<IUserUpdateData> = Object.fromEntries(
+      Object.entries(updateData).filter(([key]) =>
+        allowedFields.includes(key as keyof IUserUpdateData)
+      )
     );
-    res.json(updatedUser);
+
+    if (Object.keys(filteredData).length === 0) {
+      throw new AppError("No valid fields provided for update.", 400);
+    }
+
+    // Update the user with filtered data
+    const updatedUser = await userService.updateUser(userId, filteredData);
+
+    res.status(200).json({
+      status: "success",
+      message: "Profile updated successfully.",
+      data: filteredData, // Respond only with the provided updated fields
+    });
   } catch (error) {
     next(error);
   }

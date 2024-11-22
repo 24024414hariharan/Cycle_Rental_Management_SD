@@ -20,8 +20,9 @@ export interface IUser extends IUserRegistrationData {
 
 export interface IUserUpdateData {
   name?: string; // Optional for profile updates
-  dateOfBirth?: Date; // Optional for profile updates
+  dateOfBirth?: Date | string; // Optional for profile updates
   phoneNumber?: string; // Optional for profile updates
+  email?: string;
   identification?: string; // Optional for profile updates
 }
 

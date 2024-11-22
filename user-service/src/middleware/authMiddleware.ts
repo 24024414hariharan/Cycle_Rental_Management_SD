@@ -11,6 +11,8 @@ export const validateToken = async (
     const authHeader = req.headers.authorization;
     const tokenFromCookie = req.cookies?.token;
 
+    console.log("Cookies:", req.cookies);
+
     const token = authHeader?.startsWith("Bearer ")
       ? authHeader.split(" ")[1]
       : tokenFromCookie;
