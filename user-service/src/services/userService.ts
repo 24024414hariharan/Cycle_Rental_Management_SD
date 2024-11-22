@@ -1,6 +1,6 @@
 import prisma from "../clients/prisma";
 import bcrypt from "bcryptjs";
-import { UserFactory } from "../factories/userFactory";
+import { UserFactoryProvider } from "../factories/userFactory";
 import { AppError } from "../middleware/errorHandler";
 import {
   verifyToken,
@@ -18,10 +18,10 @@ import EmailServiceClient from "../clients/EmailServiceClient";
 
 class UserService {
   async register(userData: IUserRegistrationData): Promise<void> {
-    const newUser = await UserFactory.createUser({
-      ...userData,
-    });
+    const role = (userData.role || "CUSTOMER").toUpperCase() as Role;
+    const userFactory = UserFactoryProvider.getFactory(role);
 
+    const newUser = await userFactory.createUser(userData);
     const verificationToken = generateVerificationToken(newUser.id.toString());
     const verificationUrl = `${process.env.BASE_URL}/api/users/verify-email?token=${verificationToken}`;
 

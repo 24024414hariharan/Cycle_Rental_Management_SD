@@ -1,16 +1,19 @@
+import { Role } from "@prisma/client";
+
 export interface IUserRegistrationData {
   email: string; // Required for registration and authentication
   password: string; // Required for registration and authentication
   name: string; // User's name
-  dateOfBirth: Date; // User's date of birth
+  dateOfBirth: Date | null; // User's date of birth
   phoneNumber: string; // Required for contact or multi-factor authentication
   identification: string; // Unique identification (e.g., national ID, passport)
+  role?: Role;
 }
 
 export interface IUser extends IUserRegistrationData {
   id: number;
   isVerified: boolean;
-  role: string;
+  role: Role;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
