@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 import appRouter from "./routes/appRoutes";
 import { errorHandler } from "./middleware/errorHandler";
 
@@ -7,6 +8,7 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 app.use("/api", appRouter);
 
 app.use((req: Request, res: Response) => {

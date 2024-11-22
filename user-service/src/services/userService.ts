@@ -1,5 +1,6 @@
 import prisma from "../clients/prisma";
 import bcrypt from "bcryptjs";
+import { UserFactory } from "../factories/userFactory";
 import { AppError } from "../middleware/errorHandler";
 import {
   verifyToken,
@@ -17,9 +18,8 @@ import EmailServiceClient from "../clients/EmailServiceClient";
 
 class UserService {
   async register(userData: IUserRegistrationData): Promise<void> {
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
-    const newUser = await prisma.user.create({
-      data: { ...userData, password: hashedPassword },
+    const newUser = await UserFactory.createUser({
+      ...userData,
     });
 
     const verificationToken = generateVerificationToken(newUser.id.toString());
@@ -154,15 +154,32 @@ class UserService {
     return prisma.user.findUnique({ where: { id: userId } });
   }
 
-  async updateUser(userId: number, userData: IUserUpdateData): Promise<IUser> {
+  async updateUser(
+    userId: number,
+    userData: IUserUpdateData
+  ): Promise<Partial<IUser>> {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new AppError("User not found.", 404);
 
-    return prisma.user.update({ where: { id: userId }, data: userData });
-  }
+    const normalizedData: Partial<IUserUpdateData> = { ...userData };
 
-  generateSessionToken(userId: string, role: string): string {
-    return generateSessionToken(userId, role);
+    // Convert dateOfBirth to Date if it's a string
+    if (typeof userData.dateOfBirth === "string") {
+      normalizedData.dateOfBirth = new Date(userData.dateOfBirth);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: normalizedData,
+    });
+
+    // Return only the updated fields
+    return {
+      name: updatedUser.name,
+      email: updatedUser.email,
+      phoneNumber: updatedUser.phoneNumber,
+      dateOfBirth: updatedUser.dateOfBirth,
+    };
   }
 }
 

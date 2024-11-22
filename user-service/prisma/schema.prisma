@@ -18,7 +18,7 @@ model User {
   email               String   @unique
   password            String
   name                String
-  dateOfBirth         DateTime
+  dateOfBirth         DateTime?
   phoneNumber         String   @unique
   identification      String
   isVerified          Boolean  @default(false)
