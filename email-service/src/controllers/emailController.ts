@@ -5,15 +5,13 @@ import { EmailRequestDTO } from "../dtos/emailRequestDTO";
 export const sendVerificationEmail = async (req: Request, res: Response) => {
   const { to, subject, templateType, placeholders }: EmailRequestDTO = req.body;
 
-  // Validate required fields
   if (!to || !subject || !templateType || !placeholders) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  // Validate the `url` field if present in placeholders
   if (placeholders.url) {
     try {
-      new URL(placeholders.url); // Ensure the URL is valid
+      new URL(placeholders.url);
     } catch {
       return res
         .status(400)
@@ -22,7 +20,7 @@ export const sendVerificationEmail = async (req: Request, res: Response) => {
   }
 
   try {
-    await EmailService.sendEmail(to, subject, templateType, placeholders); // Pass templateType and placeholders dynamically
+    await EmailService.sendEmail(to, subject, templateType, placeholders);
     return res
       .status(200)
       .json({ message: `${templateType} email sent successfully` });
