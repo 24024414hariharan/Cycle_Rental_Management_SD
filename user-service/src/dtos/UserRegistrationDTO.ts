@@ -1,12 +1,12 @@
 import { Role } from "@prisma/client";
 
 export interface IUserRegistrationData {
-  email: string; // Required for registration and authentication
-  password: string; // Required for registration and authentication
-  name: string; // User's name
-  dateOfBirth: Date | null; // User's date of birth
-  phoneNumber: string; // Required for contact or multi-factor authentication
-  identification: string; // Unique identification (e.g., national ID, passport)
+  email: string;
+  password: string;
+  name: string;
+  dateOfBirth: Date | null;
+  phoneNumber: string;
+  identification: string;
   role?: Role;
 }
 
@@ -17,32 +17,32 @@ export interface IUser extends IUserRegistrationData {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
-  passwordResetToken?: string | null; // Allow null values
-  passwordResetExpires?: Date | null; // Allow null values
+  passwordResetToken?: string | null;
+  passwordResetExpires?: Date | null;
 }
 
 export interface IUserUpdateData {
-  name?: string; // Optional for profile updates
-  dateOfBirth?: Date | string; // Optional for profile updates
-  phoneNumber?: string; // Optional for profile updates
+  name?: string;
+  dateOfBirth?: Date | string;
+  phoneNumber?: string;
   email?: string;
-  identification?: string; // Optional for profile updates
+  identification?: string;
 }
 
 export interface IUpdateUserRoleData {
-  userId: number; // User's ID
-  role: string; // Role to be assigned (e.g., ADMIN, CUSTOMER)
+  userId: number; 
+  role: string;
 }
 
 export interface IPasswordResetData {
-  token: string; // Token for verifying password reset request
-  newPassword: string; // New password to be set
+  token: string;
+  newPassword: string;
 }
 
 export interface IDeactivateUserData {
-  userId: number; // User's ID to deactivate
+  userId: number;
 }
 
 export interface ICloseAccountData {
-  confirmation: string; // "CLOSE" confirmation string for account deletion
+  confirmation: string;
 }

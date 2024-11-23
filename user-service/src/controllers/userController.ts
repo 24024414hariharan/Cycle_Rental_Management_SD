@@ -6,7 +6,6 @@ import { generateSessionToken } from "../utils/tokenUtil";
 import subscriptionServiceClient from "../clients/SubscriptionServiceClient";
 import { IUserUpdateData } from "../dtos/UserRegistrationDTO";
 
-// Register user
 export const register = async (
   req: Request,
   res: Response,
@@ -28,7 +27,6 @@ export const register = async (
   }
 };
 
-// Login user
 export const login = async (
   req: Request,
   res: Response,
@@ -37,13 +35,11 @@ export const login = async (
   const { email, password } = req.body;
 
   try {
-    // Fetch the user by email
     const user = await userService.getUserByEmail(email);
     if (!user) {
       return next(new AppError("Invalid credentials.", 400));
     }
 
-    // Compare passwords
     const isPasswordValid = await userService.comparePasswords(
       password,
       user.password
@@ -52,12 +48,10 @@ export const login = async (
       return next(new AppError("Invalid credentials.", 400));
     }
 
-    // Check if email is verified
     if (!user.isVerified) {
       return next(new AppError("Email not verified.", 403));
     }
 
-    // Generate session token
     const token = generateSessionToken(user.id.toString(), user.role);
 
     res
@@ -71,7 +65,6 @@ export const login = async (
   }
 };
 
-// Logout user
 export const logout = async (
   req: Request,
   res: Response,
@@ -84,17 +77,14 @@ export const logout = async (
       throw new AppError("User is not authenticated.", 401);
     }
 
-    // Log the logout event (optional)
     console.log(`User ID ${userId} logged out at ${new Date().toISOString()}`);
 
-    // Clear the authentication cookie
     res.clearCookie("token").json({ message: "Logged out successfully" });
   } catch (error) {
     next(error);
   }
 };
 
-// Verify email
 export const verifyEmail = async (
   req: Request,
   res: Response,
@@ -110,7 +100,6 @@ export const verifyEmail = async (
   }
 };
 
-// Request password reset
 export const requestPasswordReset = async (
   req: Request,
   res: Response,
@@ -126,7 +115,6 @@ export const requestPasswordReset = async (
   }
 };
 
-// Reset password
 export const resetPassword = async (
   req: Request,
   res: Response,
@@ -142,7 +130,6 @@ export const resetPassword = async (
   }
 };
 
-// Update role (Admin only)
 export const updateRole = async (
   req: Request,
   res: Response,
@@ -158,7 +145,6 @@ export const updateRole = async (
   }
 };
 
-// Deactivate account
 export const deactivateAccount = async (
   req: Request,
   res: Response,
@@ -174,7 +160,6 @@ export const deactivateAccount = async (
   }
 };
 
-// Close account
 export const closeAccount = async (
   req: Request,
   res: Response,
@@ -198,7 +183,6 @@ export const closeAccount = async (
   }
 };
 
-// Get user profile
 export const getProfile = async (
   req: Request,
   res: Response,
@@ -238,7 +222,6 @@ export const updateProfile = async (
     const userId = req.user?.userId!;
     const updateData: Partial<IUserUpdateData> = req.body;
 
-    // Define allowed fields for updates
     const allowedFields: Array<keyof IUserUpdateData> = [
       "name",
       "email",
@@ -246,7 +229,6 @@ export const updateProfile = async (
       "dateOfBirth",
     ];
 
-    // Filter only allowed fields
     const filteredData: Partial<IUserUpdateData> = Object.fromEntries(
       Object.entries(updateData).filter(([key]) =>
         allowedFields.includes(key as keyof IUserUpdateData)
@@ -257,7 +239,6 @@ export const updateProfile = async (
       throw new AppError("No valid fields provided for update.", 400);
     }
 
-    // Update the user with filtered data
     const updatedUser = await userService.updateUser(userId, filteredData);
 
     res.status(200).json({
@@ -293,7 +274,6 @@ export const getSubscriptionStatus = async (
   }
 };
 
-// Update user's subscription
 export const updateSubscription = async (
   req: Request,
   res: Response,

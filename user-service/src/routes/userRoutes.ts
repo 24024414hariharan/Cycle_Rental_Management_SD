@@ -29,12 +29,10 @@ import { validateToken, authorizeRoles } from "../middleware/authMiddleware";
 
 const router = Router();
 
-// Registration and login
 router.post("/register", registerValidator, asyncHandler(register));
 router.post("/login", loginLimiter, loginValidator, asyncHandler(login));
 router.post("/logout", validateToken, asyncHandler(logout));
 
-// Account management
 router.put(
   "/deactivate",
   validateToken,
@@ -49,7 +47,6 @@ router.delete(
   asyncHandler(closeAccount)
 );
 
-// Password reset
 router.post("/request-password-reset", asyncHandler(requestPasswordReset));
 router.post(
   "/reset-password",
@@ -57,11 +54,9 @@ router.post(
   asyncHandler(resetPassword)
 );
 
-// Profile
 router.get("/profile", validateToken, asyncHandler(getProfile));
 router.put("/profile", validateToken, asyncHandler(updateProfile));
 
-// Role management (Admin only)
 router.put(
   "/role",
   validateToken,
@@ -70,10 +65,8 @@ router.put(
   asyncHandler(updateRole)
 );
 
-// Email verification
 router.get("/verify-email", asyncHandler(verifyEmail));
 
-//Subscription
 router.get(
   "/subscription/status",
   validateToken,

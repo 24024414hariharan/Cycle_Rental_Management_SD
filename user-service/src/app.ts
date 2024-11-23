@@ -15,7 +15,6 @@ app.use((req: Request, res: Response) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// Error handling middleware
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;

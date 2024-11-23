@@ -8,9 +8,9 @@ class SubscriptionServiceClient {
   async getSubscriptionStatus(userId: number) {
     try {
       const response = await axios.get(`${this.subscriptionServiceUrl}`, {
-        withCredentials: true, // Include cookies in the request
+        withCredentials: true, 
       });
-      return response.data.data; // Assuming the subscription status is in the `data` field
+      return response.data.data;
     } catch (error: any) {
       console.error("Error fetching subscription status:", error.message);
       throw new Error("Could not fetch subscription status.");
@@ -28,10 +28,10 @@ class SubscriptionServiceClient {
         `${this.subscriptionServiceUrl}`,
         { isActive, plan, paymentMethod },
         {
-          withCredentials: true, // Include cookies in the request
+          withCredentials: true,
         }
       );
-      return response.data.data; // Assuming the updated subscription is in the `data` field
+      return response.data.data;
     } catch (error: any) {
       console.error("Error updating subscription:", error.message);
       throw new Error("Could not update subscription.");
