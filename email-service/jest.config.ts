@@ -8,14 +8,14 @@ import type { Config } from "jest";
 const config: Config = {
   preset: "ts-jest",
   testEnvironment: "node",
-  roots: ["<rootDir>/test"], // Point Jest to the test directory
+  roots: ["<rootDir>/test"],
   collectCoverage: true,
   collectCoverageFrom: [
-    "src/**/*.ts", // Include all TypeScript files in src for coverage
-    "!src/app.ts", // Exclude entry point if desired
+    "src/**/*.ts",
+    "!src/app.ts",
   ],
-  coverageDirectory: "coverage", // Specify output folder for coverage reports
-  coverageReporters: ["text", "lcov"], // Outputs coverage to console and as an HTML report
+  coverageDirectory: "coverage",
+  coverageReporters: ["text", "lcov"],
 };
 
 export default config;

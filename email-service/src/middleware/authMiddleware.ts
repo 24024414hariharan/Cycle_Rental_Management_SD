@@ -28,7 +28,6 @@ export const validateToken = async (
   }
 };
 
-// Authorize roles
 export const authorizeRoles = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!roles.includes(req.user?.role || "")) {
