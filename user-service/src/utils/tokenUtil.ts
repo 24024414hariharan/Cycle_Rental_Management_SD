@@ -1,19 +1,19 @@
 import jwt from "jsonwebtoken";
 
 interface TokenPayload {
-  userId: string; // JWT payload userId is typically a string
-  role?: string; // Optional role field
+  userId: string;
+  role?: string;
 }
 
 export const generateVerificationToken = (userId: string): string => {
   return jwt.sign({ userId }, process.env.JWT_SECRET as string, {
-    expiresIn: process.env.JWT_VERIFICATION_EXPIRY || "24h", // Configurable
+    expiresIn: process.env.JWT_VERIFICATION_EXPIRY || "24h",
   });
 };
 
 export const generateSessionToken = (userId: string, role: string): string => {
   return jwt.sign({ userId, role }, process.env.JWT_SECRET as string, {
-    expiresIn: process.env.JWT_SESSION_EXPIRY || "7d", // Configurable
+    expiresIn: process.env.JWT_SESSION_EXPIRY || "7d",
   });
 };
 

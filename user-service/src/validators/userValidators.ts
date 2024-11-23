@@ -1,6 +1,5 @@
 import { body } from "express-validator";
 
-// Validation for user registration
 export const registerValidator = [
   body("email").isEmail().withMessage("Must be a valid email").trim(),
 
@@ -48,7 +47,6 @@ export const registerValidator = [
     .withMessage("Invalid role provided"),
 ];
 
-// Validation for user login
 export const loginValidator = [
   body("email").isEmail().withMessage("Must be a valid email").trim(),
 
@@ -59,7 +57,6 @@ export const loginValidator = [
     .withMessage("Password must be 8-32 characters long"),
 ];
 
-// Validation for resetting password
 export const resetPasswordValidator = [
   body("token").notEmpty().withMessage("Reset token is required"),
 
@@ -76,19 +73,16 @@ export const resetPasswordValidator = [
     .withMessage("Password must contain a special character"),
 ];
 
-// Validation for deactivating an account (Admin action)
 export const deactivateAccountValidator = [
   body("userId").isInt({ gt: 0 }).withMessage("A valid user ID is required"),
 ];
 
-// Validation for closing an account (Self-action)
 export const closeAccountValidator = [
   body("confirmation")
     .equals("CLOSE")
     .withMessage("You must type 'CLOSE' to confirm account deletion"),
 ];
 
-// Validation for updating a user role (Admin action)
 export const updateRoleValidator = [
   body("userId").isInt({ gt: 0 }).withMessage("A valid user ID is required"),
 
@@ -97,7 +91,6 @@ export const updateRoleValidator = [
     .withMessage("Invalid role provided"),
 ];
 
-// Export all validators
 export default {
   registerValidator,
   loginValidator,

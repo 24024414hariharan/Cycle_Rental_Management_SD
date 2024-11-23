@@ -39,7 +39,6 @@ class UserService {
     });
   }
 
-  // Compare plaintext password with hashed password
   async comparePasswords(
     password: string,
     hashedPassword: string
