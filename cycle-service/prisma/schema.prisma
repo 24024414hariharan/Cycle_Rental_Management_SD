@@ -1,0 +1,31 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Cycle {
+  id          Int      @id @default(autoincrement())
+  model       String   // "Basic" or "Geared"
+  condition   String
+  location    String
+  hourlyRate  Float
+  deposit     Float    @default(15.0)
+  isAvailable Boolean  @default(true)
+}
+
+model CycleRental {
+  id               Int      @id @default(autoincrement())
+  startTime        DateTime
+  duration         Int      // Rental duration in hours
+  expectedReturnTime DateTime
+  actualReturnTime DateTime?
+  totalFare        Float
+  userId           Int
+  cycleId          Int
+}
