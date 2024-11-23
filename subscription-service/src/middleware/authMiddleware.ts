@@ -7,7 +7,6 @@ export const validateToken = (
   res: Response,
   next: NextFunction
 ) => {
-  // Check the token from the Authorization header or cookies
   const authHeader = req.headers.authorization;
   const tokenFromCookie = req.cookies?.token;
 
@@ -16,9 +15,9 @@ export const validateToken = (
   let token: string | undefined;
 
   if (authHeader && authHeader.startsWith("Bearer ")) {
-    token = authHeader.split(" ")[1]; // Extract token from header
+    token = authHeader.split(" ")[1]; 
   } else if (tokenFromCookie) {
-    token = tokenFromCookie; // Use token from cookies if available
+    token = tokenFromCookie; 
   }
 
   console.log(token);
@@ -32,8 +31,7 @@ export const validateToken = (
       token,
       process.env.JWT_SECRET as string
     ) as JwtPayload;
-    req.user = { userId: decoded.userId }; // Attach decoded userId to req.user
-    next();
+    req.user = { userId: decoded.userId }; 
   } catch (error) {
     throw new AppError("Unauthorized: Invalid token.", 401);
   }

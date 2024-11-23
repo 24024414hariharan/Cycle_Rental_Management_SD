@@ -40,7 +40,6 @@ export const updateSubscription = asyncHandler(
 
     const { isActive, plan } = req.body;
 
-    // Validate `isActive` as a boolean
     if (typeof isActive !== "boolean") {
       throw new AppError(
         "Invalid subscription status: Must be a boolean.",
@@ -48,7 +47,6 @@ export const updateSubscription = asyncHandler(
       );
     }
 
-    // Validate `plan` against a list of allowed values
     const validPlans = ["None", "Basic", "Premium"];
     if (!validPlans.includes(plan)) {
       throw new AppError(
