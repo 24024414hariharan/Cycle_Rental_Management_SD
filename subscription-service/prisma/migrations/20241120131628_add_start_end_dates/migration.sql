@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Subscription" ADD COLUMN     "renewalDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

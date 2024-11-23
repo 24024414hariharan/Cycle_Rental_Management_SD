@@ -10,14 +10,10 @@ generator client {
 }
 
 model Subscription {
-  id             Int      @id @default(autoincrement())
-  userId         Int      @unique
-  isActive       Boolean  @default(false)
-  plan           String   @default("None")
-  paymentMethod  String?
-  startDate      DateTime?
-  endDate        DateTime?
-  renewalDate DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  isActive  Boolean  @default(false)
+  plan      String   @default("None")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

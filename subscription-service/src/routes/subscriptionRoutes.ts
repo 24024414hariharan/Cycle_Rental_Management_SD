@@ -1,8 +1,5 @@
 import { Router } from "express";
-import {
-  getSubscriptionStatus,
-  updateSubscription,
-} from "../controllers/subscriptionController";
+import { getSubscriptionStatus, updateSubscription } from "../controllers/subscriptionController";
 import { validateToken } from "../middleware/authMiddleware";
 
 const router = Router();
