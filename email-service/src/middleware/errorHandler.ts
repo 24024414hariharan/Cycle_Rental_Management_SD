@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 
-// Custom error class for operational errors
 class AppError extends Error {
   public statusCode: number;
   public isOperational: boolean;
@@ -17,25 +16,21 @@ class AppError extends Error {
   }
 }
 
-// Middleware for centralized error handling
 export const errorHandler = (
   err: AppError | Error,
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  // Determine status code and error type
   const statusCode = err instanceof AppError ? err.statusCode : 500;
   const message = err instanceof AppError ? err.message : " Error";
 
-  // Ensure JSON response
   res.status(statusCode).json({
     status: "error",
     message,
   });
 };
 
-// Middleware to catch 404 errors
 export const notFoundHandler = (
   req: Request,
   res: Response,
@@ -47,5 +42,4 @@ export const notFoundHandler = (
   });
 };
 
-// Export the AppError class
 export { AppError };

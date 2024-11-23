@@ -8,14 +8,12 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Use the appRouter for all routes
 app.use("/api", appRouter);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// Error handling middleware
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
