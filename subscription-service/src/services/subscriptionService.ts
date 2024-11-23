@@ -8,7 +8,7 @@ class SubscriptionService {
     });
 
     if (!subscription) {
-      return { isActive: false, plan: "None" }; // Default response for non-subscribed users
+      return { isActive: false, plan: "None" }; 
     }
 
     return {
