@@ -11,14 +11,6 @@
     "test": "jest",
     "sonar": "sonar-scanner"
   },
-  "simple-git-hooks": {
-    "pre-commit": "npx lint-staged"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "npm test -- --bail --findRelatedTests"
-    ]
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
