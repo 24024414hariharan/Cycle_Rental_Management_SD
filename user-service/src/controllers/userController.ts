@@ -57,7 +57,8 @@ export const login = async (
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        sameSite: "none", // Required for cross-origin cookies
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       })
       .json({ message: "Login successful" });
   } catch (error) {
@@ -190,6 +191,7 @@ export const getProfile = async (
 ) => {
   try {
     const userId = req.user?.userId;
+    console.log(userId);
 
     if (!userId) {
       throw new AppError("Unauthorized: User information missing.", 401);
@@ -262,8 +264,10 @@ export const getSubscriptionStatus = async (
       throw new AppError("Unauthorized: User information missing.", 401);
     }
 
+    const cookies = req.headers.cookie || "";
+
     const subscriptionStatus =
-      await subscriptionServiceClient.getSubscriptionStatus(userId);
+      await subscriptionServiceClient.getSubscriptionStatus(userId, cookies);
     res.status(200).json({
       status: "success",
       message: "Subscription status retrieved successfully.",
@@ -285,6 +289,8 @@ export const updateSubscription = async (
       throw new AppError("Unauthorized: User information missing.", 401);
     }
 
+    const cookies = req.headers.cookie || "";
+
     const { isActive, plan, paymentMethod } = req.body;
 
     const updatedSubscription =
@@ -292,7 +298,8 @@ export const updateSubscription = async (
         userId,
         isActive,
         plan,
-        paymentMethod
+        paymentMethod,
+        cookies
       );
 
     res.status(200).json({

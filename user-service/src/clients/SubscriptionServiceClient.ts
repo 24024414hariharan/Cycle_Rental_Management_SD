@@ -5,10 +5,12 @@ class SubscriptionServiceClient {
     process.env.SUBSCRIPTION_SERVICE_URL ||
     "http://localhost:7000/api/subscription";
 
-  async getSubscriptionStatus(userId: number) {
+  async getSubscriptionStatus(userId: number, cookies: string) {
     try {
       const response = await axios.get(`${this.subscriptionServiceUrl}`, {
-        withCredentials: true, 
+        headers: {
+          Cookie: cookies, // Include cookies in the headers
+        },
       });
       return response.data.data;
     } catch (error: any) {
@@ -21,14 +23,18 @@ class SubscriptionServiceClient {
     userId: number,
     isActive: boolean,
     plan: "None" | "Basic",
-    paymentMethod?: string
+    paymentMethod: string,
+    cookies: string
   ) {
     try {
       const response = await axios.put(
         `${this.subscriptionServiceUrl}`,
-        { isActive, plan, paymentMethod },
+        { userId, isActive, plan, paymentMethod },
         {
           withCredentials: true,
+          headers: {
+            Cookie: cookies,
+          },
         }
       );
       return response.data.data;

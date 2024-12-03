@@ -17,6 +17,17 @@ import { Role } from "@prisma/client";
 import EmailServiceClient from "../clients/EmailServiceClient";
 
 class UserService {
+  private static instance: UserService; // Singleton instance
+
+  private constructor() {}
+
+  public static getInstance(): UserService {
+    if (!UserService.instance) {
+      UserService.instance = new UserService();
+    }
+    return UserService.instance;
+  }
+
   async register(userData: IUserRegistrationData): Promise<void> {
     const role = (userData.role || "CUSTOMER").toUpperCase() as Role;
     const userFactory = UserFactoryProvider.getFactory(role);
@@ -182,4 +193,4 @@ class UserService {
   }
 }
 
-export default new UserService();
+export default UserService.getInstance();
