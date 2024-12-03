@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Payment {
+  id          Int      @id @default(autoincrement())
+  userId      Int      
+  amount      Float 
+  method      String 
+  status      String 
+  referenceId String?  @unique
+  captureId   String?
+  createdAt   DateTime @default(now()) 
+  updatedAt   DateTime @updatedAt
+
+  // Relation to Refund
+  refunds Refund[] // One-to-many relationship with Refund
+}
+
+model Refund {
+  id          Int      @id @default(autoincrement())
+  paymentId   Int      @unique
+  amount      Float 
+  status      String 
+  referenceId String?  @unique
+  createdAt   DateTime @default(now())  
+  updatedAt   DateTime @updatedAt 
+
+  // Foreign key relationship
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+}
