@@ -13,7 +13,7 @@ RUN npm install
 # Copy the rest of the application code to the container
 COPY . .
 
-npx prisma validate
+RUN npx prisma validate
 
 RUN npx prisma generate
 
