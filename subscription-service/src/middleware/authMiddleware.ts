@@ -1,38 +1,39 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import { verifyToken } from "../utils/tokenUtil";
 import { AppError } from "./errorHandler";
 
-export const validateToken = (
+export const validateToken = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization;
-  const tokenFromCookie = req.cookies?.token;
-
-  console.log(tokenFromCookie);
-
-  let token: string | undefined;
-
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    token = authHeader.split(" ")[1]; 
-  } else if (tokenFromCookie) {
-    token = tokenFromCookie; 
-  }
-
-  console.log(token);
-
-  if (!token) {
-    throw new AppError("Unauthorized: Token missing.", 401);
-  }
-
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as JwtPayload;
-    req.user = { userId: decoded.userId }; 
+    const authHeader = req.headers.authorization;
+    const tokenFromCookie = req.cookies?.token;
+    console.log(authHeader);
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : tokenFromCookie;
+
+    if (!token) throw new AppError("Unauthorized: Token missing.", 401);
+
+    const decoded = verifyToken(token);
+    req.user = {
+      userId: Number(decoded.userId),
+      role: decoded.role || "CUSTOMER",
+    };
+    console.log(req.user.userId);
+    next();
   } catch (error) {
-    throw new AppError("Unauthorized: Invalid token.", 401);
+    next(new AppError("Unauthorized: Invalid token.", 401));
   }
+};
+
+export const authorizeRoles = (roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!roles.includes(req.user?.role || "")) {
+      throw new AppError("Unauthorized: Insufficient permissions.", 403);
+    }
+    next();
+  };
 };

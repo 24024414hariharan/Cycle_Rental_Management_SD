@@ -9,7 +9,8 @@
     "serve": "nodemon dist/app.js",
     "start": "concurrently \"npm run watch\" \"npm run serve\"",
     "test": "jest",
-    "sonar": "sonar-scanner"
+    "sonar": "sonar-scanner",
+    "owasp": "owasp-dependency-check --project \"CYCLE_RENTAL\" -f HTML"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
@@ -29,26 +30,27 @@
     "axios-retry": "^4.5.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "express-rate-limit": "^7.4.1",
     "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.8.1",
     "pg": "^8.13.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.7",
+    "@types/cors": "^2.8.17",
     "@types/express": "^4.17.13",
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.7",
-    "@types/mongoose": "^5.11.96",
     "@types/node": "^18.15.0",
     "concurrently": "^9.1.0",
     "jest": "^29.7.0",
     "lint-staged": "^15.2.10",
     "nodemon": "^3.1.7",
+    "owasp-dependency-check": "^0.0.24",
     "prisma": "^5.22.0",
     "simple-git-hooks": "^2.11.1",
     "sonar-scanner": "^3.1.0",
