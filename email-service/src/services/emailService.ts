@@ -184,6 +184,130 @@ class EmailService {
         </body>
         </html>
       `,
+      subscriptionUpdate: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              margin: 0;
+              padding: 0;
+            }
+            .container {
+              max-width: 600px;
+              margin: 40px auto;
+              background: #ffffff;
+              padding: 20px;
+              border-radius: 8px;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+              text-align: center;
+              font-size: 26px;
+              color: #4CAF50;
+              font-weight: bold;
+              margin-bottom: 20px;
+            }
+            .status {
+              text-align: center;
+              font-size: 18px;
+              color: #555;
+              margin-bottom: 30px;
+            }
+            .highlight {
+              color: #4CAF50;
+              font-weight: bold;
+            }
+            .content {
+              margin: 20px 0;
+              font-size: 16px;
+              color: #333;
+              line-height: 1.6;
+            }
+            .footer {
+              text-align: center;
+              font-size: 12px;
+              color: #888;
+              margin-top: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">Subscription Status Update</div>
+            <div class="status">
+              Your subscription status is now: <span class="highlight">${placeholders.status}</span>
+            </div>
+            <div class="content">
+              <p>Dear ${placeholders.name},</p>
+              <p>We wanted to let you know that your subscription has been updated to the following status:</p>
+              <p style="text-align: center; font-size: 20px; color: #4CAF50;"><strong>${placeholders.status}</strong></p>
+              <p>If you have any questions, feel free to reach out to our support team.</p>
+            </div>
+            <div class="footer">
+              <p>Thank you for choosing <strong>Your Company</strong>.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      rentalUpdate: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              margin: 0;
+              padding: 0;
+            }
+            .container {
+              max-width: 600px;
+              margin: 40px auto;
+              background: #ffffff;
+              padding: 20px;
+              border-radius: 8px;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+              text-align: center;
+              font-size: 26px;
+              color: #4CAF50;
+              font-weight: bold;
+              margin-bottom: 20px;
+            }
+            .content {
+              margin: 20px 0;
+              font-size: 16px;
+              color: #333;
+              text-align: center;
+              line-height: 1.6;
+            }
+            .footer {
+              text-align: center;
+              font-size: 12px;
+              color: #888;
+              margin-top: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">Payment ${placeholders.status}!</div>
+            <div class="content">
+              <p>Hi ${placeholders.name},</p>
+              <p>Your payment was ${placeholders.status}. Thank you for choosing our service!</p>
+            </div>
+            <div class="footer">
+              <p>© 2024 Your Company. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
     };
 
     const template = templates[templateType];
