@@ -49,10 +49,10 @@ export const registerValidator = [
 
 export const loginValidator = [
   body("email").isEmail().withMessage("Must be a valid email").trim(),
-
   body("password")
     .notEmpty()
     .withMessage("Password is required")
+    .bail() // Stop further validation if this fails
     .isLength({ min: 8, max: 32 })
     .withMessage("Password must be 8-32 characters long"),
 ];
