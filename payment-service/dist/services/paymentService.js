@@ -6,8 +6,8 @@ class PaymentService {
     constructor(paymentStrategy) {
         this.paymentStrategy = paymentStrategy;
     }
-    async processPayment(userId, amount, cookies) {
-        const paymentResponse = await this.paymentStrategy.processPayment(amount, userId, cookies);
+    async processPayment(userId, amount, cookies, type, rentalID) {
+        const paymentResponse = await this.paymentStrategy.processPayment(amount, userId, cookies, type, rentalID);
         const method = this.paymentStrategy instanceof stripePayment_1.StripePayment
             ? "Stripe"
             : this.paymentStrategy instanceof paypalPayment_1.PayPalPayment

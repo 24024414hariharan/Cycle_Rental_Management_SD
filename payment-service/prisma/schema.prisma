@@ -13,6 +13,7 @@ model Payment {
   amount      Float 
   method      String 
   status      String 
+  type        String
   referenceId String?  @unique
   captureId   String?
   createdAt   DateTime @default(now()) 

@@ -6,14 +6,21 @@ export class StripePayment implements PaymentStrategy {
   async processPayment(
     amount: number,
     userId: number,
-    cookies: string
+    cookies: string,
+    type: string,
+    rentalID: number
   ): Promise<any> {
     try {
       // Create a PaymentIntent
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Stripe uses cents
         currency: "eur",
-        metadata: { userId: userId.toString(), cookies },
+        metadata: {
+          userId: userId.toString(),
+          cookies,
+          type,
+          rentalID: rentalID.toString(),
+        },
         payment_method_types: ["card"],
       });
 
@@ -24,6 +31,7 @@ export class StripePayment implements PaymentStrategy {
           userId,
           method: "Stripe",
           amount,
+          type,
           referenceId: paymentIntent.id,
           status: "Pending",
         },

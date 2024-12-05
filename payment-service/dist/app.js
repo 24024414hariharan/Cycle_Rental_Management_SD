@@ -14,14 +14,17 @@ const cors_1 = __importDefault(require("cors"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const SubscriptionObserver_1 = require("./observers/SubscriptionObserver");
 const PaymentEventSubject_1 = require("./observers/PaymentEventSubject");
+const CycleRentalObserver_1 = require("./observers/CycleRentalObserver");
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({
     origin: [
         "http://localhost:3000",
         "http://localhost:8000",
         "http://localhost:7000",
-    ],
-    credentials: true,
+        "http://localhost:4000",
+        "http://localhost:6000",
+    ], // Allowed origins
+    credentials: true, // Allow cookies to be sent
 }));
 // Middleware for structured logs
 if (process.env.NODE_ENV === "development") {
@@ -30,7 +33,9 @@ if (process.env.NODE_ENV === "development") {
 app.use((0, cookie_parser_1.default)());
 // Add observers to the PaymentEventSubject
 const subscriptionObserver = new SubscriptionObserver_1.SubscriptionObserver();
+const cycleRentalObserver = new CycleRentalObserver_1.CycleRentalObserver();
 PaymentEventSubject_1.paymentEventSubject.addObserver(subscriptionObserver);
+PaymentEventSubject_1.paymentEventSubject.addObserver(cycleRentalObserver);
 console.log("Observers added to PaymentEventSubject.");
 // Webhook routes
 app.use("/api/webhooks", webhookRoutes_1.default);

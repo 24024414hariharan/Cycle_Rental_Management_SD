@@ -19,6 +19,8 @@ const stripeWebhookHandler = async (req, res) => {
                 const status = event.type === "payment_intent.succeeded" ? "Success" : "Failed";
                 const userId = paymentIntent.metadata?.userId;
                 const cookies = paymentIntent.metadata?.cookies;
+                const type = paymentIntent.metadata?.type;
+                const rentalID = paymentIntent.metadata?.rentalID;
                 if (!userId) {
                     console.error("[Stripe Webhook] Error: Missing userId in metadata.");
                     res.status(400).send("Webhook Error: Missing userId.");
@@ -29,7 +31,9 @@ const stripeWebhookHandler = async (req, res) => {
                     status,
                     userId,
                     cookies,
+                    type,
                     paymentIntentId: paymentIntent.id,
+                    rentalID,
                 });
                 console.log(`[Stripe Webhook] Processed payment: ${status}`);
                 break;
@@ -113,6 +117,8 @@ const paypalWebhookHandler = async (req, res) => {
         }
         const userId = customData.userId;
         const cookies = customData.metadata.cookies;
+        const type = customData.type;
+        const rentalID = customData.rentalID;
         const paymethod = "PayPal";
         if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
             if (!captureId || !userId) {
@@ -127,6 +133,8 @@ const paypalWebhookHandler = async (req, res) => {
                 userId,
                 cookies,
                 captureId,
+                type,
+                rentalID,
             });
             console.log(`[PayPal Webhook] Payment success for userId: ${userId}`);
         }

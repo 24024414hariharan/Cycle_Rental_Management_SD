@@ -11,7 +11,7 @@ class PayPalPayment {
     /**
      * Process payment by creating an order with CAPTURE intent.
      */
-    async processPayment(amount, userId, cookies) {
+    async processPayment(amount, userId, cookies, type, rentalID) {
         if (amount <= 0) {
             throw new Error("Invalid amount. Payment amount must be greater than zero.");
         }
@@ -21,7 +21,12 @@ class PayPalPayment {
             purchase_units: [
                 {
                     amount: { value: amount.toFixed(2), currency_code: "EUR" }, // Euros
-                    custom_id: JSON.stringify({ userId, metadata: { cookies } }), // Metadata for tracking
+                    custom_id: JSON.stringify({
+                        userId,
+                        metadata: { cookies },
+                        type,
+                        rentalID,
+                    }), // Metadata for tracking
                     description: `Subscription payment by User ${userId}`,
                 },
             ],
@@ -43,6 +48,7 @@ class PayPalPayment {
                     userId,
                     method: "PayPal",
                     amount,
+                    type,
                     referenceId: order.result.id, // Order ID to track the payment
                     status: "Pending", // Initial status
                 },

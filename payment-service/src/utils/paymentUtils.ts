@@ -2,19 +2,23 @@ import prisma from "../clients/prisma";
 import axios from "axios";
 
 const subscriptionServiceUrl = `${process.env.SUBSCRIPTION_SERVICE_URL}/api/subscription/update-status`;
+const cycleServiceUrl = `${process.env.Cycle_SERVICE_URL}/api/cycles/update-status`;
 
 // Stripe-specific payment update handler
 export const handleStripePaymentUpdate = async (
   referenceId: string,
   status: string,
   userId: string,
-  cookies: string
+  cookies: string,
+  type: string,
+  rentalID?: string
 ) => {
   try {
     console.log("Stripe payment update received:", {
       referenceId,
       status,
       userId,
+      rentalID,
     });
 
     // Check if the payment exists
@@ -35,8 +39,13 @@ export const handleStripePaymentUpdate = async (
 
     console.log(`Stripe payment ${status.toLowerCase()} for userId: ${userId}`);
 
-    // Notify the subscription service
-    await notifySubscriptionService(userId, status, cookies);
+    if (type === "Subscription") {
+      await notifySubscriptionService(userId, status, cookies);
+    } else {
+      if (rentalID !== undefined) {
+        await notifyCycleService(userId, status, cookies, rentalID);
+      }
+    }
   } catch (err: any) {
     console.error(`Error updating Stripe payment: ${err.message}`);
     throw new Error("Failed to handle Stripe payment update.");
@@ -49,7 +58,9 @@ export const handlePayPalPaymentUpdate = async (
   status: string,
   userId: string,
   captureId: string,
-  cookies: string
+  cookies: string,
+  type: string,
+  rentalID?: string
 ) => {
   try {
     console.log("PayPal payment update received:", {
@@ -80,8 +91,13 @@ export const handlePayPalPaymentUpdate = async (
 
     console.log(`PayPal payment ${status.toLowerCase()} for userId: ${userId}`);
 
-    // Notify the subscription service
-    await notifySubscriptionService(userId, status, cookies);
+    if (type === "Subscription") {
+      await notifySubscriptionService(userId, status, cookies);
+    } else {
+      if (rentalID !== undefined) {
+        await notifyCycleService(userId, status, cookies, rentalID);
+      }
+    }
   } catch (err: any) {
     console.error(`Error updating PayPal payment: ${err.message}`);
     throw new Error("Failed to handle PayPal payment update.");
@@ -95,7 +111,6 @@ const notifySubscriptionService = async (
   cookies: string
 ) => {
   try {
-    console.log(cookies);
     await axios.post(
       subscriptionServiceUrl,
       {
@@ -112,5 +127,32 @@ const notifySubscriptionService = async (
   } catch (err: any) {
     console.error(`Error notifying subscription service: ${err.message}`);
     throw new Error("Failed to notify subscription service.");
+  }
+};
+
+const notifyCycleService = async (
+  userId: string,
+  status: string,
+  cookies: string,
+  rentalID: string
+) => {
+  try {
+    await axios.post(
+      cycleServiceUrl,
+      {
+        userId: parseInt(userId, 10),
+        status,
+        rentalID: parseInt(rentalID, 10),
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          cookie: cookies,
+        },
+      }
+    );
+  } catch (err: any) {
+    console.error(`Error notifying Cycle service: ${err.message}`);
+    throw new Error("Failed to notify Cycle service.");
   }
 };
