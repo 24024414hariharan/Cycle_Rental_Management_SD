@@ -9,12 +9,13 @@ class PaymentServiceClient {
     plan: string,
     paymentMethod: string,
     amount: number,
-    cookies: string
+    cookies: string,
+    type: string
   ) {
     try {
       const response = await axios.post(
         `${this.paymentServiceUrl}/process`,
-        { userId, plan, paymentMethod, amount },
+        { userId, plan, paymentMethod, amount, type },
         {
           withCredentials: true,
           headers: {

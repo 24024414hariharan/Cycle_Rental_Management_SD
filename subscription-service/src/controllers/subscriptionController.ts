@@ -13,6 +13,7 @@ export const getSubscriptionStatus = asyncHandler(
     const subscription = await subscriptionService.getSubscriptionStatus(
       userId
     );
+
     res.status(200).json({
       status: "success",
       message: "Subscription status retrieved successfully.",
