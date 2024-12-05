@@ -13,6 +13,9 @@ import {
   updateRole,
   getSubscriptionStatus,
   updateSubscription,
+  getAvailableCycles,
+  calculateFare,
+  payForRental,
 } from "../controllers/userController";
 
 import { asyncHandler } from "../utils/asyncHandler";
@@ -78,5 +81,15 @@ router.put(
   validateToken,
   asyncHandler(updateSubscription)
 );
+
+router.get(
+  "/get-available-cycles",
+  validateToken,
+  asyncHandler(getAvailableCycles)
+);
+
+router.post("/calculate-fare", validateToken, asyncHandler(calculateFare));
+
+router.post("/pay-rental", validateToken, asyncHandler(payForRental));
 
 export default router;

@@ -14,7 +14,6 @@ class SubscriptionServiceClient {
       });
       return response.data.data;
     } catch (error: any) {
-      console.error("Error fetching subscription status:", error.message);
       throw new Error("Could not fetch subscription status.");
     }
   }
@@ -39,7 +38,6 @@ class SubscriptionServiceClient {
       );
       return response.data.data;
     } catch (error: any) {
-      console.error("Error updating subscription:", error.message);
       throw new Error("Could not update subscription.");
     }
   }

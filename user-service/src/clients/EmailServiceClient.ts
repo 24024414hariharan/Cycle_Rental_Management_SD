@@ -30,8 +30,6 @@ class EmailServiceClient {
         `Email sent successfully to ${to} with template ${templateType}`
       );
     } catch (error: any) {
-      console.error("Error sending email:", error.message);
-
       const errorMessage = error.response
         ? `Email service responded with status ${error.response.status}: ${
             error.response.data.message || error.response.statusText

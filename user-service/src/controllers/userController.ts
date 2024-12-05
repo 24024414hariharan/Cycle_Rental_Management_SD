@@ -4,7 +4,13 @@ import { validationResult } from "express-validator";
 import { AppError } from "../middleware/errorHandler";
 import { generateSessionToken } from "../utils/tokenUtil";
 import subscriptionServiceClient from "../clients/SubscriptionServiceClient";
-import { IUserUpdateData } from "../dtos/UserRegistrationDTO";
+import {
+  IUserUpdateData,
+  FareRequestDTO,
+  PaymentRequestDTO,
+} from "../dtos/UserRegistrationDTO";
+import cycleServiceClient from "../clients/CycleServiceClient";
+import { PaymentServiceClient } from "../clients/paymentServiceClient";
 
 export const register = async (
   req: Request,
@@ -306,6 +312,126 @@ export const updateSubscription = async (
       status: "success",
       message: "Subscription updated successfully.",
       data: updatedSubscription,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAvailableCycles = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { location, type, status, brand } = req.query;
+
+    const cookies = req.headers.cookie || "";
+
+    const filters = {
+      location: typeof location === "string" ? location : undefined,
+      type: typeof type === "string" ? type : undefined,
+      status: typeof status === "string" ? status : undefined,
+      brand: typeof brand === "string" ? brand : undefined,
+    };
+
+    const availableCycles = await cycleServiceClient.getAvailableCycles(
+      filters,
+      cookies
+    );
+
+    res.status(200).json({
+      message: "Available cycles fetched successfully.",
+      data: availableCycles,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const calculateFare = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { cycleId, rentalHours } = req.body as FareRequestDTO;
+
+    const cookies = req.headers.cookie || "";
+    if (!cookies) {
+      return res.status(401).json({ message: "Unauthorized: Missing token" });
+    }
+
+    const fare = await cycleServiceClient.calculateFare(
+      cycleId,
+      rentalHours,
+      cookies
+    );
+
+    res.json({
+      status: "success",
+      message: "Fare calculated successfully.",
+      data: fare,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const payForRental = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { rentalId, paymentMethod } = req.body;
+    const type = "Cycle rental";
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new AppError("Unauthorized: User information missing.", 401);
+    }
+
+    const cookies = req.headers.cookie || "";
+    if (!cookies) {
+      return res.status(401).json({ message: "Unauthorized: Missing token" });
+    }
+
+    // Validate input
+    if (!rentalId || !paymentMethod) {
+      throw new AppError(
+        "Missing required fields: rentalId, calculatedFare, or paymentMethod.",
+        400
+      );
+    }
+
+    const rental = await cycleServiceClient.getUserRentalDetails(
+      rentalId,
+      cookies
+    );
+
+    if (!rental) {
+      throw new AppError("Rental record not found.", 404);
+    }
+
+    const amount = rental.totalFare;
+    const paymentServiceClient = new PaymentServiceClient();
+    const paymentRequest: PaymentRequestDTO = {
+      userId,
+      paymentMethod,
+      amount,
+      cookies,
+      type,
+      rentalId,
+    };
+
+    const paymentStatus = await paymentServiceClient.processPayment(
+      paymentRequest
+    );
+
+    res.status(200).json({
+      status: "success",
+      message:
+        "Payment has been initiated. Rental status will be notified by mail",
     });
   } catch (error) {
     next(error);
