@@ -5,6 +5,7 @@ CREATE TABLE "Payment" (
     "amount" DOUBLE PRECISION NOT NULL,
     "method" TEXT NOT NULL,
     "status" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
     "referenceId" TEXT,
     "captureId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -7,7 +7,7 @@ import { AppError } from "../middleware/errorHandler";
 const paypalPayment = new PayPalPayment();
 
 export const createPayment = async (req: Request, res: Response) => {
-  const { paymentMethod, amount } = req.body;
+  const { paymentMethod, amount, type, rentalID } = req.body;
   const userId = req.user?.userId;
   const cookies = req.headers.cookie || "";
   if (!userId) {
@@ -26,7 +26,9 @@ export const createPayment = async (req: Request, res: Response) => {
   const paymentResponse = await paymentService.processPayment(
     userId,
     amount,
-    cookies
+    cookies,
+    type,
+    rentalID
   );
 
   res.json({

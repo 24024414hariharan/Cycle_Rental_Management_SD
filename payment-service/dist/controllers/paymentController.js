@@ -10,7 +10,7 @@ const paymentService_1 = __importDefault(require("../services/paymentService"));
 const errorHandler_1 = require("../middleware/errorHandler");
 const paypalPayment = new paypalPayment_1.PayPalPayment();
 const createPayment = async (req, res) => {
-    const { paymentMethod, amount } = req.body;
+    const { paymentMethod, amount, type, rentalID } = req.body;
     const userId = req.user?.userId;
     const cookies = req.headers.cookie || "";
     if (!userId) {
@@ -22,7 +22,7 @@ const createPayment = async (req, res) => {
     const strategy = paymentMethod === "Stripe" ? new stripePayment_1.StripePayment() : new paypalPayment_1.PayPalPayment();
     const paymentService = new paymentService_1.default(strategy);
     // Initiate payment
-    const paymentResponse = await paymentService.processPayment(userId, amount, cookies);
+    const paymentResponse = await paymentService.processPayment(userId, amount, cookies, type, rentalID);
     res.json({
         status: "pending",
         data: {

@@ -10,7 +10,9 @@ export class PayPalPayment implements PaymentStrategy {
   async processPayment(
     amount: number,
     userId: number,
-    cookies: string
+    cookies: string,
+    type: string,
+    rentalID: number
   ): Promise<any> {
     if (amount <= 0) {
       throw new Error(
@@ -24,7 +26,12 @@ export class PayPalPayment implements PaymentStrategy {
       purchase_units: [
         {
           amount: { value: amount.toFixed(2), currency_code: "EUR" }, // Euros
-          custom_id: JSON.stringify({ userId, metadata: { cookies } }), // Metadata for tracking
+          custom_id: JSON.stringify({
+            userId,
+            metadata: { cookies },
+            type,
+            rentalID,
+          }), // Metadata for tracking
           description: `Subscription payment by User ${userId}`,
         },
       ],
@@ -53,6 +60,7 @@ export class PayPalPayment implements PaymentStrategy {
           userId,
           method: "PayPal",
           amount,
+          type,
           referenceId: order.result.id, // Order ID to track the payment
           status: "Pending", // Initial status
         },

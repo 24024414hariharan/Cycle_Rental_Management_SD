@@ -1,22 +1,26 @@
-// src/observers/SubscriptionObserver.ts
 import { Observer } from "./Observer";
 import {
   handleStripePaymentUpdate,
   handlePayPalPaymentUpdate,
 } from "../utils/paymentUtils";
 
-export class SubscriptionObserver implements Observer {
+export class CycleRentalObserver implements Observer {
   async update(event: string, paymethod: string, data: any): Promise<void> {
     const type = data.type;
-
-    if (type !== "Subscription") return;
-
+    if (type !== "Cycle rental") return;
     if (event === "Success" || event === "Failed") {
-      const { userId, status, cookies, paymentIntentId, orderId, captureId } =
-        data;
+      const {
+        userId,
+        status,
+        cookies,
+        paymentIntentId,
+        orderId,
+        captureId,
+        rentalID,
+      } = data;
 
       console.log(
-        `[SubscriptionObserver] Notifying subscription service for user ${userId}`
+        `[CycleRentalObserver] Notifying Cycle service for user ${userId}`
       );
 
       try {
@@ -26,7 +30,8 @@ export class SubscriptionObserver implements Observer {
             status,
             userId,
             cookies,
-            type
+            type,
+            rentalID
           );
         } else {
           await handlePayPalPaymentUpdate(
@@ -35,12 +40,13 @@ export class SubscriptionObserver implements Observer {
             userId,
             captureId,
             cookies,
-            type
+            type,
+            rentalID
           );
         }
       } catch (error) {
         console.error(
-          `[SubscriptionObserver] Error notifying subscription service:`,
+          `[CycleRentalObserver] Error notifying cycle service:`,
           error
         );
       }

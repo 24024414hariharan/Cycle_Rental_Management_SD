@@ -7,13 +7,18 @@ exports.StripePayment = void 0;
 const stripeClient_1 = __importDefault(require("../../clients/stripeClient"));
 const prisma_1 = __importDefault(require("../../clients/prisma"));
 class StripePayment {
-    async processPayment(amount, userId, cookies) {
+    async processPayment(amount, userId, cookies, type, rentalID) {
         try {
             // Create a PaymentIntent
             const paymentIntent = await stripeClient_1.default.paymentIntents.create({
                 amount: Math.round(amount * 100), // Stripe uses cents
                 currency: "eur",
-                metadata: { userId: userId.toString(), cookies },
+                metadata: {
+                    userId: userId.toString(),
+                    cookies,
+                    type,
+                    rentalID: rentalID.toString(),
+                },
                 payment_method_types: ["card"],
             });
             console.log("Payment Intent Created:", paymentIntent);
@@ -22,6 +27,7 @@ class StripePayment {
                     userId,
                     method: "Stripe",
                     amount,
+                    type,
                     referenceId: paymentIntent.id,
                     status: "Pending",
                 },

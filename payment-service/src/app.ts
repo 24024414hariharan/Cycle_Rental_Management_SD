@@ -9,6 +9,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { SubscriptionObserver } from "./observers/SubscriptionObserver";
 import { paymentEventSubject } from "./observers/PaymentEventSubject";
+import { CycleRentalObserver } from "./observers/CycleRentalObserver";
 
 const app = express();
 
@@ -34,8 +35,10 @@ app.use(cookieParser());
 
 // Add observers to the PaymentEventSubject
 const subscriptionObserver = new SubscriptionObserver();
+const cycleRentalObserver = new CycleRentalObserver();
 
 paymentEventSubject.addObserver(subscriptionObserver);
+paymentEventSubject.addObserver(cycleRentalObserver);
 
 console.log("Observers added to PaymentEventSubject.");
 

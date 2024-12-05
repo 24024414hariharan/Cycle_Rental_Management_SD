@@ -5,11 +5,19 @@ import { PayPalPayment } from "./strategies/paypalPayment"; // Import PayPalPaym
 class PaymentService {
   constructor(private paymentStrategy: PaymentStrategy) {}
 
-  async processPayment(userId: number, amount: number, cookies: string) {
+  async processPayment(
+    userId: number,
+    amount: number,
+    cookies: string,
+    type: string,
+    rentalID: number
+  ) {
     const paymentResponse = await this.paymentStrategy.processPayment(
       amount,
       userId,
-      cookies
+      cookies,
+      type,
+      rentalID
     );
 
     const method =
