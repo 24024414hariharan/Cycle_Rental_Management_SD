@@ -30,7 +30,7 @@ export interface IUserUpdateData {
 }
 
 export interface IUpdateUserRoleData {
-  userId: number; 
+  userId: number;
   role: string;
 }
 
@@ -45,4 +45,18 @@ export interface IDeactivateUserData {
 
 export interface ICloseAccountData {
   confirmation: string;
+}
+
+export interface FareRequestDTO {
+  cycleId: number;
+  rentalHours: number;
+}
+
+export interface PaymentRequestDTO {
+  userId: number;
+  paymentMethod: string;
+  amount: number;
+  cookies: string;
+  type: string;
+  rentalId: number;
 }

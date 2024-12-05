@@ -5,6 +5,8 @@ import subscriptionServiceClient from "../../src/clients/SubscriptionServiceClie
 import { AppError } from "../../src/middleware/errorHandler";
 import { validationResult } from "express-validator";
 import { generateSessionToken } from "../../src/utils/tokenUtil";
+import { PaymentServiceClient } from "../../src/clients/paymentServiceClient";
+import cycleServiceClient from "../../src/clients/CycleServiceClient";
 
 jest.mock("../../src/services/userService");
 jest.mock("../../src/clients/SubscriptionServiceClient");
@@ -643,4 +645,151 @@ describe("userController", () => {
       expect(next).toHaveBeenCalledWith(new Error("Update failed"));
     });    
   });
+
+  describe("calculateFare", () => {
+    it("should calculate fare successfully", async () => {
+      const mockFare = { total: 100 };
+      const req = mockRequest();
+      req.body = { cycleId: 1, rentalHours: 2 };
+      req.headers.cookie = "authToken=mockToken";
+      const res = mockResponse();
+      const next = mockNext();
+  
+      jest.spyOn(cycleServiceClient, "calculateFare").mockResolvedValueOnce(mockFare);
+  
+      await userController.calculateFare(req, res, next);
+  
+      expect(cycleServiceClient.calculateFare).toHaveBeenCalledWith(
+        1,
+        2,
+        "authToken=mockToken"
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        status: "success",
+        message: "Fare calculated successfully.",
+        data: mockFare,
+      });
+    });
+  
+    it("should handle missing cookies for calculating fare", async () => {
+      const req = mockRequest();
+      req.body = { cycleId: 1, rentalHours: 2 };
+      req.headers.cookie = undefined; // No cookies
+      const res = mockResponse();
+      const next = mockNext();
+  
+      await userController.calculateFare(req, res, next);
+  
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Unauthorized: Missing token",
+      });
+    });
+  
+    it("should call next with error if calculateFare fails", async () => {
+      const req = mockRequest();
+      req.body = { cycleId: 1, rentalHours: 2 };
+      req.headers.cookie = "authToken=mockToken";
+      const res = mockResponse();
+      const next = mockNext();
+  
+      jest.spyOn(cycleServiceClient, "calculateFare").mockRejectedValueOnce(new Error("Fare calculation failed"));
+  
+      await userController.calculateFare(req, res, next);
+  
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+    });
+  });
+
+  describe("payForRental", () => {
+    it("should process rental payment successfully", async () => {
+      const mockRentalDetails = { totalFare: 100 };
+      const req = mockRequest();
+      req.body = { rentalId: 123, paymentMethod: "Card" };
+      req.user = { userId: 1 };
+      req.headers.cookie = "authToken=mockToken";
+      const res = mockResponse();
+      const next = mockNext();
+  
+      jest.spyOn(cycleServiceClient, "getUserRentalDetails").mockResolvedValueOnce(mockRentalDetails);
+      jest.spyOn(PaymentServiceClient.prototype, "processPayment").mockResolvedValueOnce({ success: true });
+  
+      await userController.payForRental(req, res, next);
+  
+      expect(cycleServiceClient.getUserRentalDetails).toHaveBeenCalledWith(123, "authToken=mockToken");
+      expect(PaymentServiceClient.prototype.processPayment).toHaveBeenCalledWith({
+        userId: 1,
+        paymentMethod: "Card",
+        amount: 100,
+        cookies: "authToken=mockToken",
+        type: "Cycle rental",
+        rentalId: 123,
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        status: "success",
+        message: "Payment has been initiated. Rental status will be notified by mail",
+      });
+    });
+  
+    it("should return 401 if user is not authenticated", async () => {
+      const req = mockRequest();
+      req.body = { rentalId: 123, paymentMethod: "Card" };
+      req.headers.cookie = "authToken=mockToken";
+      const res = mockResponse();
+      const next = mockNext();
+  
+      await userController.payForRental(req, res, next);
+  
+      expect(next).toHaveBeenCalledWith(expect.any(AppError));
+    });
+  
+    it("should handle missing required fields", async () => {
+      const req = mockRequest();
+      req.body = {}; // Missing rentalId and paymentMethod
+      req.user = { userId: 1 };
+      req.headers.cookie = "authToken=mockToken";
+      const res = mockResponse();
+      const next = mockNext();
+  
+      await userController.payForRental(req, res, next);
+  
+      expect(next).toHaveBeenCalledWith(
+        new AppError("Missing required fields: rentalId, calculatedFare, or paymentMethod.", 400)
+      );
+    });
+  
+    it("should call next with error if rental details retrieval fails", async () => {
+      const req = mockRequest();
+      req.body = { rentalId: 123, paymentMethod: "Card" };
+      req.user = { userId: 1 };
+      req.headers.cookie = "authToken=mockToken";
+      const res = mockResponse();
+      const next = mockNext();
+  
+      jest.spyOn(cycleServiceClient, "getUserRentalDetails").mockRejectedValueOnce(new Error("Rental details not found"));
+  
+      await userController.payForRental(req, res, next);
+  
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+    });
+  
+    it("should call next with error if payment processing fails", async () => {
+      const mockRentalDetails = { totalFare: 100 };
+      const req = mockRequest();
+      req.body = { rentalId: 123, paymentMethod: "Card" };
+      req.user = { userId: 1 };
+      req.headers.cookie = "authToken=mockToken";
+      const res = mockResponse();
+      const next = mockNext();
+  
+      jest.spyOn(cycleServiceClient, "getUserRentalDetails").mockResolvedValueOnce(mockRentalDetails);
+      jest.spyOn(PaymentServiceClient.prototype, "processPayment").mockRejectedValueOnce(new Error("Payment failed"));
+  
+      await userController.payForRental(req, res, next);
+  
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+    });
+  });
+  
 });

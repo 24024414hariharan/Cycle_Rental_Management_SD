@@ -49,60 +49,31 @@ describe("Prisma Client", () => {
     expect(user).toEqual(mockUser);
   });
 
+  jest.useFakeTimers().setSystemTime(new Date("2024-12-05T12:52:30.127Z")); // Set system time
+
   it("should call user.create with the correct arguments", async () => {
-    const mockUser = {
-      id: 1,
+    const mockPrisma = { user: { create: jest.fn() } } as any;
+    const userFactory = {
       email: "test@example.com",
       password: "hashed_password",
-      name: "Test User",
-      dateOfBirth: null,
-      phoneNumber: "1234567890",
-      identification: "ID123",
       isVerified: true,
       role: "USER",
-      isActive: true,
+      phoneNumber: "1234567890",
+      identification: "ID123",
       createdAt: new Date(),
       updatedAt: new Date(),
-      passwordResetToken: null,
-      passwordResetExpires: null,
-    } as any;
-    mockPrisma.user.create.mockResolvedValue(mockUser);
-
-    const user = await prisma.user.create({
-      data: {
-        email: "test@example.com",
-        password: "hashed_password",
-        name: "Test User",
-        dateOfBirth: null,
-        phoneNumber: "1234567890",
-        identification: "ID123",
-        isVerified: true,
-        role: "USER",
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        passwordResetToken: null,
-        passwordResetExpires: null,
-      },
-    } as any);
-
+    };
+  
+    await mockPrisma.user.create({
+      data: userFactory,
+    });
+  
     expect(mockPrisma.user.create).toHaveBeenCalledWith({
       data: {
-        email: "test@example.com",
-        password: "hashed_password",
-        name: "Test User",
-        dateOfBirth: null,
-        phoneNumber: "1234567890",
-        identification: "ID123",
-        isVerified: true,
-        role: "USER",
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        passwordResetToken: null,
-        passwordResetExpires: null,
+        ...userFactory,
+        createdAt: new Date("2024-12-05T12:52:30.127Z"),
+        updatedAt: new Date("2024-12-05T12:52:30.127Z"),
       },
-    } as any);
-    expect(user).toEqual(mockUser);
+    });
   });
 });

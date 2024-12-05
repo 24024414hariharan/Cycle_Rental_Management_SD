@@ -2,5 +2,5 @@ projectKey=cycle_rental_management
 serverUrl=http://localhost:9000
 serverVersion=24.12.0.100206
 dashboardUrl=http://localhost:9000/dashboard?id=cycle_rental_management
-ceTaskId=0aa9ec04-c39c-46f3-aeb6-412e5c9723f3
-ceTaskUrl=http://localhost:9000/api/ce/task?id=0aa9ec04-c39c-46f3-aeb6-412e5c9723f3
+ceTaskId=21f0227e-d574-444d-b156-04c9906fd8c3
+ceTaskUrl=http://localhost:9000/api/ce/task?id=21f0227e-d574-444d-b156-04c9906fd8c3
