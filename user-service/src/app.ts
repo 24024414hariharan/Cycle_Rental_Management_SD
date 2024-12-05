@@ -12,9 +12,9 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "http://localhost:3000",
-      "http://localhost:8000",
-      "http://localhost:7000",
+      `${process.env.cycleDomain}`,
+      `${process.env.paymentDomain}`,
+      `${process.env.subscriptionDomain}`,
     ], // Allowed origins
     credentials: true, // Allow cookies to be sent
   })
