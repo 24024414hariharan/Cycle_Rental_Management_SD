@@ -49,6 +49,7 @@ class SubscriptionService {
   ): Promise<{ status: string; paymentData?: any }> {
     const { isActive, plan, paymentMethod } = updateDTO;
     const subscriptionAmount = 20;
+    const type = "Subscription";
 
     if (!["None", "Basic"].includes(plan)) {
       throw new AppError("Invalid subscription plan.", 400);
@@ -67,7 +68,8 @@ class SubscriptionService {
         plan,
         paymentMethod,
         subscriptionAmount,
-        cookies
+        cookies,
+        type
       );
 
       // Mark subscription as pending until webhook confirms success
@@ -119,7 +121,8 @@ class SubscriptionService {
     plan: string,
     paymentMethod: string,
     amount: number,
-    cookies: string
+    cookies: string,
+    type: string
   ): Promise<any> {
     try {
       console.log(
@@ -131,7 +134,8 @@ class SubscriptionService {
         plan,
         paymentMethod,
         amount,
-        cookies
+        cookies,
+        type
       );
 
       return paymentResponse;
@@ -151,7 +155,6 @@ class SubscriptionService {
     cookies: string
   ) {
     try {
-      console.log(cookies);
       const user = await axios.get(
         `${process.env.USER_URL}/api/users/profile`,
         {
