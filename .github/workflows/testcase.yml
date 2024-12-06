@@ -25,16 +25,16 @@ jobs:
           cache: 'npm'
 
       # Navigate to user-service and install dependencies
-      - name: Install Dependencies
+      - name: Install Dependencies in user-service
         working-directory: ./user-service
         run: |
           if [ ! -f package-lock.json ]; then
-            echo "package-lock.json not found in user-service directory. Exiting.";
+            echo "Error: package-lock.json not found in user-service directory.";
             exit 1;
           fi
           npm ci
 
-      # Run tests
+      # Run tests in user-service
       - name: Run Tests
         working-directory: ./user-service
         run: |
