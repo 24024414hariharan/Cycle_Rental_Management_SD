@@ -63,8 +63,8 @@ export const login = async (
     res
       .cookie("token", token, {
         httpOnly: true,
-        sameSite: "none", // Required for cross-origin cookies
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        sameSite: "none",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .json({ message: "Login successful" });
   } catch (error) {
@@ -252,7 +252,7 @@ export const updateProfile = async (
     res.status(200).json({
       status: "success",
       message: "Profile updated successfully.",
-      data: filteredData, // Respond only with the provided updated fields
+      data: filteredData,
     });
   } catch (error) {
     next(error);
@@ -396,7 +396,6 @@ export const payForRental = async (
       return res.status(401).json({ message: "Unauthorized: Missing token" });
     }
 
-    // Validate input
     if (!rentalId || !paymentMethod) {
       throw new AppError(
         "Missing required fields: rentalId, calculatedFare, or paymentMethod.",

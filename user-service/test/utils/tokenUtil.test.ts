@@ -27,7 +27,6 @@ describe("tokenUtil", () => {
 
   describe("generateVerificationToken", () => {
     it("should generate a verification token", () => {
-      // Explicitly mock the return type of jwt.sign
       (jwt.sign as jest.Mock).mockReturnValue(verificationToken);
 
       const token = generateVerificationToken(userId);
@@ -43,7 +42,6 @@ describe("tokenUtil", () => {
 
   describe("generateSessionToken", () => {
     it("should generate a session token", () => {
-      // Explicitly mock the return type of jwt.sign
       (jwt.sign as jest.Mock).mockReturnValue(sessionToken);
 
       const token = generateSessionToken(userId, role);
@@ -59,7 +57,6 @@ describe("tokenUtil", () => {
 
   describe("verifyToken", () => {
     it("should verify a valid token", () => {
-      // Explicitly mock the return type of jwt.verify
       (jwt.verify as jest.Mock).mockReturnValue(payload);
 
       const decoded = verifyToken(sessionToken);
@@ -69,7 +66,6 @@ describe("tokenUtil", () => {
     });
 
     it("should throw an error for an invalid token", () => {
-      // Explicitly mock jwt.verify to throw an error
       (jwt.verify as jest.Mock).mockImplementation(() => {
         throw new Error("Invalid or expired token.");
       });

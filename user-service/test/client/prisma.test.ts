@@ -49,7 +49,7 @@ describe("Prisma Client", () => {
     expect(user).toEqual(mockUser);
   });
 
-  jest.useFakeTimers().setSystemTime(new Date("2024-12-05T12:52:30.127Z")); // Set system time
+  jest.useFakeTimers().setSystemTime(new Date("2024-12-05T12:52:30.127Z"));
 
   it("should call user.create with the correct arguments", async () => {
     const mockPrisma = { user: { create: jest.fn() } } as any;

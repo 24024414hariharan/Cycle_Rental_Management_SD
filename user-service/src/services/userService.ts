@@ -17,7 +17,7 @@ import { Role } from "@prisma/client";
 import EmailServiceClient from "../clients/EmailServiceClient";
 
 class UserService {
-  private static instance: UserService; // Singleton instance
+  private static instance: UserService;
 
   private constructor() {}
 
@@ -173,7 +173,6 @@ class UserService {
 
     const normalizedData: Partial<IUserUpdateData> = { ...userData };
 
-    // Convert dateOfBirth to Date if it's a string
     if (typeof userData.dateOfBirth === "string") {
       normalizedData.dateOfBirth = new Date(userData.dateOfBirth);
     }
@@ -183,7 +182,6 @@ class UserService {
       data: normalizedData,
     });
 
-    // Return only the updated fields
     return {
       name: updatedUser.name,
       email: updatedUser.email,

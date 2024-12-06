@@ -20,7 +20,7 @@ describe("SubscriptionServiceClient", () => {
       mockedAxios.get.mockResolvedValue(mockData);
 
       const cookies = "sessionid=abc123";
-      const userId = 1; // Not used in this method, but passed for consistency
+      const userId = 1;
       const result = await SubscriptionServiceClient.getSubscriptionStatus(
         userId,
         cookies

@@ -75,7 +75,7 @@ describe("CycleServiceClient", () => {
   
     it("should throw a default error when response data is undefined", async () => {
       const mockError = {
-        response: undefined, // Simulate undefined response
+        response: undefined,
       };
   
       mockedAxios.post.mockRejectedValueOnce(mockError);
@@ -96,7 +96,7 @@ describe("CycleServiceClient", () => {
     it("should throw a default error when response message is missing", async () => {
       const mockError = {
         response: {
-          data: undefined, // Simulate missing data.message
+          data: undefined,
           status: 500,
         },
       };

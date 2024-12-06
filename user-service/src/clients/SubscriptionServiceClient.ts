@@ -9,7 +9,7 @@ class SubscriptionServiceClient {
     try {
       const response = await axios.get(`${this.subscriptionServiceUrl}`, {
         headers: {
-          Cookie: cookies, // Include cookies in the headers
+          Cookie: cookies,
         },
       });
       return response.data.data;
