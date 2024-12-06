@@ -1,5 +1,4 @@
 name: Run Tests on Pull Request
-
 on:
   pull_request:
     types:
@@ -11,7 +10,6 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-
     steps:
       # Checkout the repository
       - name: Checkout Code
@@ -23,16 +21,20 @@ jobs:
         with:
           node-version: '16'
           cache: 'npm'
+          cache-dependency-path: user-service/package-lock.json
 
-      # Navigate to user-service and install dependencies
-      - name: Install Dependencies in user-service
-        working-directory: ./user-service
+      # Verify package-lock.json exists in user-service
+      - name: Verify package-lock.json in user-service
         run: |
-          if [ ! -f package-lock.json ]; then
+          if [ ! -f user-service/package-lock.json ]; then
             echo "Error: package-lock.json not found in user-service directory.";
             exit 1;
           fi
-          npm ci
+
+      # Install Dependencies in user-service
+      - name: Install Dependencies in user-service
+        working-directory: ./user-service
+        run: npm ci
 
       # Run tests in user-service
       - name: Run Tests
