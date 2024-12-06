@@ -17,10 +17,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Change to the user-service directory
-      - name: Change Directory to user-service
-        run: cd user-service
-
       # Set up Node.js environment
       - name: Set Up Node.js
         uses: actions/setup-node@v3
@@ -28,22 +24,20 @@ jobs:
           node-version: '16'
           cache: 'npm'
 
-      # Install dependencies
+      # Navigate to user-service and install dependencies
       - name: Install Dependencies
+        working-directory: ./user-service
         run: |
-          cd user-service
           if [ ! -f package-lock.json ]; then
             echo "package-lock.json not found in user-service directory. Exiting.";
             exit 1;
           fi
           npm ci
-        env:
-          CI: true
 
       # Run tests
       - name: Run Tests
+        working-directory: ./user-service
         run: |
-          cd user-service
           mkdir -p ./test-results
           npm test -- --ci --coverage --outputFile=./test-results/test-report.xml
         env:
