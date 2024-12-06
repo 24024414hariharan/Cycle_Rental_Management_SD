@@ -7,8 +7,8 @@ on:
       - reopened
 
 jobs:
-  test:
-    name: Run Tests
+  test-user-service:
+    name: Run Tests - User Service
     runs-on: ubuntu-latest
     steps:
       # Checkout the repository
@@ -49,12 +49,64 @@ jobs:
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
-          name: test-results
+          name: user-service-test-results
           path: ./user-service/test-results/test-report.xml
 
       # Upload coverage report
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
         with:
-          name: coverage
+          name: user-service-coverage
           path: ./user-service/coverage
+
+  test-subscription-service:
+    name: Run Tests - Subscription Service
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Set up Node.js environment
+      - name: Set Up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+          cache-dependency-path: subscription-service/package-lock.json
+
+      # Verify package-lock.json exists in subscription-service
+      - name: Verify package-lock.json in subscription-service
+        run: |
+          if [ ! -f subscription-service/package-lock.json ]; then
+            echo "Error: package-lock.json not found in subscription-service directory.";
+            exit 1;
+          fi
+
+      # Install Dependencies in subscription-service
+      - name: Install Dependencies in subscription-service
+        working-directory: ./subscription-service
+        run: npm ci
+
+      # Run tests in subscription-service
+      - name: Run Tests
+        working-directory: ./subscription-service
+        run: |
+          mkdir -p ./test-results
+          npm test -- --ci --coverage --outputFile=./test-results/test-report.xml
+        env:
+          CI: true
+
+      # Upload test results
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: subscription-service-test-results
+          path: ./subscription-service/test-results/test-report.xml
+
+      # Upload coverage report
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: subscription-service-coverage
+          path: ./subscription-service/coverage
