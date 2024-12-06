@@ -17,6 +17,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Change to the user-service directory
+      - name: Change Directory to user-service
+        run: cd user-service
+
       # Set up Node.js environment
       - name: Set Up Node.js
         uses: actions/setup-node@v3
@@ -27,8 +31,9 @@ jobs:
       # Install dependencies
       - name: Install Dependencies
         run: |
+          cd user-service
           if [ ! -f package-lock.json ]; then
-            echo "package-lock.json not found. Exiting.";
+            echo "package-lock.json not found in user-service directory. Exiting.";
             exit 1;
           fi
           npm ci
@@ -38,6 +43,7 @@ jobs:
       # Run tests
       - name: Run Tests
         run: |
+          cd user-service
           mkdir -p ./test-results
           npm test -- --ci --coverage --outputFile=./test-results/test-report.xml
         env:
@@ -48,11 +54,11 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: test-results
-          path: ./test-results/test-report.xml
+          path: ./user-service/test-results/test-report.xml
 
       # Upload coverage report
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
         with:
           name: coverage
-          path: ./coverage
+          path: ./user-service/coverage
