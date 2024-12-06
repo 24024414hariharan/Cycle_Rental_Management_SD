@@ -13,12 +13,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the code
+      # Checkout the repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Set up Node.js
-      - name: Setup Node.js
+      # Set up Node.js environment
+      - name: Set Up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16' # Specify Node.js version
@@ -26,11 +26,11 @@ jobs:
 
       # Install dependencies
       - name: Install Dependencies
-        run: npm ci # Use `ci` for clean installs with lockfile
+        run: npm ci
         env:
           CI: true
 
-      # Run tests with Jest
+      # Run tests
       - name: Run Tests
         run: |
           mkdir -p ./test-results
