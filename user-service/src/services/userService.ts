@@ -16,6 +16,8 @@ import {
 import { Role } from "@prisma/client";
 import EmailServiceClient from "../clients/EmailServiceClient";
 
+
+
 class UserService {
   private static instance: UserService;
 
