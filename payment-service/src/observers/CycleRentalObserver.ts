@@ -6,9 +6,13 @@ import {
 
 export class CycleRentalObserver implements Observer {
   async update(event: string, paymethod: string, data: any): Promise<void> {
+    const allowedTypes = ["Cycle rental", "Deposit refund"];
     const type = data.type;
-    if (type !== "Cycle rental") return;
+
+    if (!allowedTypes.includes(type)) return;
+
     if (event === "Success" || event === "Failed") {
+      console.log("Hi");
       const {
         userId,
         status,
@@ -17,36 +21,51 @@ export class CycleRentalObserver implements Observer {
         orderId,
         captureId,
         rentalID,
+        isRefund,
+        refundId,
+        refundAmount,
+        referenceId,
       } = data;
 
       console.log(
-        `[CycleRentalObserver] Notifying Cycle service for user ${userId}`
+        `[CycleRentalObserver] Notifying Cycle service for user ${userId} (Type: ${type}, Event: ${event})`
       );
 
       try {
+        console.log(type);
         if (paymethod === "Stripe") {
-          await handleStripePaymentUpdate(
-            paymentIntentId,
+          await handleStripePaymentUpdate({
+            referenceId,
             status,
             userId,
             cookies,
             type,
-            rentalID
-          );
-        } else {
-          await handlePayPalPaymentUpdate(
-            orderId,
+            rentalID,
+            isRefund,
+            refundId,
+            refundAmount,
+          });
+        } else if (paymethod === "PayPal") {
+          await handlePayPalPaymentUpdate({
+            referenceId,
             status,
             userId,
+            cookies,
+            type,
+            rentalID,
+            isRefund,
+            refundId,
+            refundAmount,
             captureId,
-            cookies,
-            type,
-            rentalID
+          });
+        } else {
+          console.warn(
+            `[CycleRentalObserver] Unsupported payment method: ${paymethod}`
           );
         }
       } catch (error) {
         console.error(
-          `[CycleRentalObserver] Error notifying cycle service:`,
+          `[CycleRentalObserver] Error notifying cycle service for user ${userId} (Type: ${type}, Event: ${event}):`,
           error
         );
       }

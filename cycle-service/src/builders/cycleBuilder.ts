@@ -1,4 +1,3 @@
-// src/builders/cycleBuilder.ts
 import { CycleDTO } from "../dtos/cycldataDTO";
 
 export class CycleBuilder implements CycleDTO {

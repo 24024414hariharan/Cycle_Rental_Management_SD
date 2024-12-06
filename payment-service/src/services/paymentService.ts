@@ -30,8 +30,22 @@ class PaymentService {
     return paymentResponse;
   }
 
-  async processRefund(transactionId: string, amount?: number) {
-    return await this.paymentStrategy.processRefund(transactionId, amount);
+  async processRefund(
+    transactionId: string,
+    amount: number,
+    userId: number,
+    cookies: string,
+    type: string,
+    rentalID: number
+  ) {
+    return await this.paymentStrategy.processRefund(
+      transactionId,
+      amount,
+      userId,
+      cookies,
+      type,
+      rentalID
+    );
   }
 }
 

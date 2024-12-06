@@ -1,11 +1,14 @@
 class AIService {
-  async checkCycleStatus(cycleId: number){
+  async checkCycleStatus(cycleId: number) {
     try {
-      const status = [true]; // False once the return for defect cycle is enabled.
+      const status = [true, false];
       const randomStatus = status[Math.floor(Math.random() * status.length)];
       return randomStatus;
     } catch (error) {
-      console.error("An error occurred while fetching the random status:", error);
+      console.error(
+        "An error occurred while fetching the random status:",
+        error
+      );
       throw error;
     }
   }

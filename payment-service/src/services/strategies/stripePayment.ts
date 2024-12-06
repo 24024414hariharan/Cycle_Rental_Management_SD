@@ -11,15 +11,14 @@ export class StripePayment implements PaymentStrategy {
     rentalID: number
   ): Promise<any> {
     try {
-      // Create a PaymentIntent
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Stripe uses cents
+        amount: Math.round(amount * 100),
         currency: "eur",
         metadata: {
           userId: userId.toString(),
           cookies,
           type,
-          rentalID: rentalID.toString(),
+          ...(rentalID ? { rentalID: rentalID.toString() } : {}),
         },
         payment_method_types: ["card"],
       });
@@ -34,6 +33,7 @@ export class StripePayment implements PaymentStrategy {
           type,
           referenceId: paymentIntent.id,
           status: "Pending",
+          rentalID,
         },
       });
 
@@ -53,11 +53,46 @@ export class StripePayment implements PaymentStrategy {
     }
   }
 
-  async processRefund(transactionId: string, amount?: number): Promise<any> {
+  async processRefund(
+    transactionId: string,
+    amount: number,
+    userId: number,
+    cookies: string,
+    type: string,
+    rentalID: number
+  ): Promise<any> {
     try {
+      const payment = await prisma.payment.findFirst({
+        where: {
+          OR: [{ referenceId: transactionId }, { rentalID }],
+        },
+      });
+
+      if (!payment) {
+        throw new Error(
+          "Payment record not found for the given transactionId or rentalID."
+        );
+      }
+
+      await prisma.refund.create({
+        data: {
+          paymentId: payment.id,
+          amount,
+          status: "Pending",
+          referenceId: transactionId,
+          rentalID,
+          userId,
+        },
+      });
       const refund = await stripe.refunds.create({
         payment_intent: transactionId,
-        amount: amount ? Math.round(amount * 100) : undefined, // Partial refund
+        amount: amount ? Math.round(amount * 100) : undefined,
+        metadata: {
+          userId: userId.toString(),
+          cookies,
+          type,
+          ...(rentalID ? { rentalID: rentalID.toString() } : {}),
+        },
       });
 
       console.log("Refund created:", refund);

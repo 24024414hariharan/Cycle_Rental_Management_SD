@@ -109,20 +109,20 @@ describe("userController", () => {
 
       expect(next).toHaveBeenCalledWith(expect.any(AppError));
     });
-    
+
     it("should call next with a validation error when validationResult fails", async () => {
       mockedValidationResult.mockReturnValue({
         isEmpty: () => false,
         array: () => [{ msg: "Invalid input" }],
       } as any);
-    
+
       const req = mockRequest();
       req.body = {};
       const res = mockResponse();
       const next = mockNext();
-    
+
       await userController.register(req, res, next);
-    
+
       expect(next).toHaveBeenCalledWith(expect.any(AppError));
     });
   });
@@ -130,42 +130,44 @@ describe("userController", () => {
   describe("verifyEmail", () => {
     it("should verify email successfully", async () => {
       mockedUserService.verifyEmailToken.mockResolvedValue(undefined);
-  
+
       const req = mockRequest();
       req.query = { token: "mockToken" };
       const res = mockResponse();
       const next = mockNext();
-  
+
       await userController.verifyEmail(req, res, next);
-  
-      expect(mockedUserService.verifyEmailToken).toHaveBeenCalledWith("mockToken");
+
+      expect(mockedUserService.verifyEmailToken).toHaveBeenCalledWith(
+        "mockToken"
+      );
       expect(res.json).toHaveBeenCalledWith({
         message: "Email verified successfully.",
       });
     });
-  
+
     it("should call next with a generic Error if email verification fails", async () => {
       const error = new Error("Verification failed");
       mockedUserService.verifyEmailToken.mockRejectedValue(error);
-  
+
       const req = mockRequest();
       req.query = { token: "mockToken" };
       const res = mockResponse();
       const next = mockNext();
-  
+
       await userController.verifyEmail(req, res, next);
-  
+
       expect(next).toHaveBeenCalledWith(error);
     });
-  
+
     it("should call next with a generic Error if token is missing", async () => {
       const req = mockRequest();
       req.query = {};
       const res = mockResponse();
       const next = mockNext();
-  
+
       await userController.verifyEmail(req, res, next);
-  
+
       expect(next).toHaveBeenCalledWith(new Error("Verification failed"));
     });
   });
@@ -296,18 +298,19 @@ describe("userController", () => {
     });
 
     it("should call next with an Error when deactivation fails", async () => {
-      mockedUserService.deactivateUser.mockRejectedValue(new Error("Deactivation failed"));
-    
+      mockedUserService.deactivateUser.mockRejectedValue(
+        new Error("Deactivation failed")
+      );
+
       const req = mockRequest();
       req.body = { userId: 1 };
       const res = mockResponse();
       const next = mockNext();
-    
+
       await userController.deactivateAccount(req, res, next);
-    
+
       expect(next).toHaveBeenCalledWith(new Error("Deactivation failed"));
     });
-    
   });
 
   describe("getProfile", () => {
@@ -488,20 +491,19 @@ describe("userController", () => {
         isVerified: true,
         role: "USER",
       } as any;
-    
+
       mockedUserService.getUserByEmail.mockResolvedValue(mockUser);
       mockedUserService.comparePasswords.mockResolvedValue(false);
-    
+
       const req = mockRequest();
       req.body = { email: "test@example.com", password: "wrongPassword" };
       const res = mockResponse();
       const next = mockNext();
-    
+
       await userController.login(req, res, next);
-    
+
       expect(next).toHaveBeenCalledWith(expect.any(AppError));
     });
-    
   });
 
   describe("logout", () => {
@@ -529,12 +531,11 @@ describe("userController", () => {
       const req = mockRequest();
       const res = mockResponse();
       const next = mockNext();
-    
+
       await userController.logout(req, res, next);
-    
+
       expect(next).toHaveBeenCalledWith(expect.any(AppError));
     });
-    
   });
 
   describe("getSubscriptionStatus", () => {
@@ -571,18 +572,20 @@ describe("userController", () => {
     });
 
     it("should call next with an Error when subscription retrieval fails", async () => {
-      mockedSubscriptionClient.getSubscriptionStatus.mockRejectedValue(new Error("Service error"));
-    
+      mockedSubscriptionClient.getSubscriptionStatus.mockRejectedValue(
+        new Error("Service error")
+      );
+
       const req = mockRequest();
       req.user = { userId: 1 };
       req.headers.cookie = "mock_cookie";
       const res = mockResponse();
       const next = mockNext();
-    
+
       await userController.getSubscriptionStatus(req, res, next);
-    
+
       expect(next).toHaveBeenCalledWith(new Error("Service error"));
-    });    
+    });
   });
 
   describe("updateSubscription", () => {
@@ -631,19 +634,21 @@ describe("userController", () => {
     });
 
     it("should call next with an Error when subscription update fails", async () => {
-      mockedSubscriptionClient.updateSubscription.mockRejectedValue(new Error("Update failed"));
-    
+      mockedSubscriptionClient.updateSubscription.mockRejectedValue(
+        new Error("Update failed")
+      );
+
       const req = mockRequest();
       req.user = { userId: 1 };
       req.body = { isActive: true, plan: "Basic", paymentMethod: "Card" };
       req.headers.cookie = "mock_cookie";
       const res = mockResponse();
       const next = mockNext();
-    
+
       await userController.updateSubscription(req, res, next);
-    
+
       expect(next).toHaveBeenCalledWith(new Error("Update failed"));
-    });    
+    });
   });
 
   describe("calculateFare", () => {
@@ -654,11 +659,13 @@ describe("userController", () => {
       req.headers.cookie = "authToken=mockToken";
       const res = mockResponse();
       const next = mockNext();
-  
-      jest.spyOn(cycleServiceClient, "calculateFare").mockResolvedValueOnce(mockFare);
-  
+
+      jest
+        .spyOn(cycleServiceClient, "calculateFare")
+        .mockResolvedValueOnce(mockFare);
+
       await userController.calculateFare(req, res, next);
-  
+
       expect(cycleServiceClient.calculateFare).toHaveBeenCalledWith(
         1,
         2,
@@ -670,33 +677,35 @@ describe("userController", () => {
         data: mockFare,
       });
     });
-  
+
     it("should handle missing cookies for calculating fare", async () => {
       const req = mockRequest();
       req.body = { cycleId: 1, rentalHours: 2 };
       req.headers.cookie = undefined;
       const res = mockResponse();
       const next = mockNext();
-  
+
       await userController.calculateFare(req, res, next);
-  
+
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         message: "Unauthorized: Missing token",
       });
     });
-  
+
     it("should call next with error if calculateFare fails", async () => {
       const req = mockRequest();
       req.body = { cycleId: 1, rentalHours: 2 };
       req.headers.cookie = "authToken=mockToken";
       const res = mockResponse();
       const next = mockNext();
-  
-      jest.spyOn(cycleServiceClient, "calculateFare").mockRejectedValueOnce(new Error("Fare calculation failed"));
-  
+
+      jest
+        .spyOn(cycleServiceClient, "calculateFare")
+        .mockRejectedValueOnce(new Error("Fare calculation failed"));
+
       await userController.calculateFare(req, res, next);
-  
+
       expect(next).toHaveBeenCalledWith(expect.any(Error));
     });
   });
@@ -710,40 +719,51 @@ describe("userController", () => {
       req.headers.cookie = "authToken=mockToken";
       const res = mockResponse();
       const next = mockNext();
-  
-      jest.spyOn(cycleServiceClient, "getUserRentalDetails").mockResolvedValueOnce(mockRentalDetails);
-      jest.spyOn(PaymentServiceClient.prototype, "processPayment").mockResolvedValueOnce({ success: true });
-  
+
+      jest
+        .spyOn(cycleServiceClient, "getUserRentalDetails")
+        .mockResolvedValueOnce(mockRentalDetails);
+      jest
+        .spyOn(PaymentServiceClient.prototype, "processPayment")
+        .mockResolvedValueOnce({ success: true });
+
       await userController.payForRental(req, res, next);
-  
-      expect(cycleServiceClient.getUserRentalDetails).toHaveBeenCalledWith(123, "authToken=mockToken");
-      expect(PaymentServiceClient.prototype.processPayment).toHaveBeenCalledWith({
+
+      expect(cycleServiceClient.getUserRentalDetails).toHaveBeenCalledWith(
+        123,
+        "authToken=mockToken"
+      );
+      expect(
+        PaymentServiceClient.prototype.processPayment
+      ).toHaveBeenCalledWith({
         userId: 1,
         paymentMethod: "Card",
         amount: 100,
         cookies: "authToken=mockToken",
         type: "Cycle rental",
         rentalId: 123,
+        transactionType: "Payment",
       });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         status: "success",
-        message: "Payment has been initiated. Rental status will be notified by mail",
+        message:
+          "Payment has been initiated. Rental status will be notified by mail",
       });
     });
-  
+
     it("should return 401 if user is not authenticated", async () => {
       const req = mockRequest();
       req.body = { rentalId: 123, paymentMethod: "Card" };
       req.headers.cookie = "authToken=mockToken";
       const res = mockResponse();
       const next = mockNext();
-  
+
       await userController.payForRental(req, res, next);
-  
+
       expect(next).toHaveBeenCalledWith(expect.any(AppError));
     });
-  
+
     it("should handle missing required fields", async () => {
       const req = mockRequest();
       req.body = {};
@@ -751,14 +771,17 @@ describe("userController", () => {
       req.headers.cookie = "authToken=mockToken";
       const res = mockResponse();
       const next = mockNext();
-  
+
       await userController.payForRental(req, res, next);
-  
+
       expect(next).toHaveBeenCalledWith(
-        new AppError("Missing required fields: rentalId, calculatedFare, or paymentMethod.", 400)
+        new AppError(
+          "Missing required fields: rentalId, calculatedFare, or paymentMethod.",
+          400
+        )
       );
     });
-  
+
     it("should call next with error if rental details retrieval fails", async () => {
       const req = mockRequest();
       req.body = { rentalId: 123, paymentMethod: "Card" };
@@ -766,14 +789,16 @@ describe("userController", () => {
       req.headers.cookie = "authToken=mockToken";
       const res = mockResponse();
       const next = mockNext();
-  
-      jest.spyOn(cycleServiceClient, "getUserRentalDetails").mockRejectedValueOnce(new Error("Rental details not found"));
-  
+
+      jest
+        .spyOn(cycleServiceClient, "getUserRentalDetails")
+        .mockRejectedValueOnce(new Error("Rental details not found"));
+
       await userController.payForRental(req, res, next);
-  
+
       expect(next).toHaveBeenCalledWith(expect.any(Error));
     });
-  
+
     it("should call next with error if payment processing fails", async () => {
       const mockRentalDetails = { totalFare: 100 };
       const req = mockRequest();
@@ -782,14 +807,17 @@ describe("userController", () => {
       req.headers.cookie = "authToken=mockToken";
       const res = mockResponse();
       const next = mockNext();
-  
-      jest.spyOn(cycleServiceClient, "getUserRentalDetails").mockResolvedValueOnce(mockRentalDetails);
-      jest.spyOn(PaymentServiceClient.prototype, "processPayment").mockRejectedValueOnce(new Error("Payment failed"));
-  
+
+      jest
+        .spyOn(cycleServiceClient, "getUserRentalDetails")
+        .mockResolvedValueOnce(mockRentalDetails);
+      jest
+        .spyOn(PaymentServiceClient.prototype, "processPayment")
+        .mockRejectedValueOnce(new Error("Payment failed"));
+
       await userController.payForRental(req, res, next);
-  
+
       expect(next).toHaveBeenCalledWith(expect.any(Error));
     });
   });
-  
 });

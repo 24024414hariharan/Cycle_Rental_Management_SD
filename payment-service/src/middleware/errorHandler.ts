@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 
-// Custom error class for operational errors
 export class AppError extends Error {
   public statusCode: number;
   public isOperational: boolean;
@@ -17,19 +16,16 @@ export class AppError extends Error {
   }
 }
 
-// Middleware for centralized error handling
 export const errorHandler = (
   err: AppError | Error,
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  // Determine if the error is an instance of AppError
   const statusCode = err instanceof AppError ? err.statusCode : 500;
   const message =
     err instanceof AppError ? err.message : "Internal Server Error";
 
-  // Log errors that are not operational for debugging
   if (!(err instanceof AppError)) {
     console.error(err.stack || err);
   }
@@ -40,7 +36,6 @@ export const errorHandler = (
   });
 };
 
-// Middleware to catch 404 errors
 export const notFoundHandler = (
   req: Request,
   res: Response,

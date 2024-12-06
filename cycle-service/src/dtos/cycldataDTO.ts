@@ -1,11 +1,10 @@
-// src/dtos/CycleDTO.ts
 export interface CycleDTO {
   modelId: number;
   condition: string;
   status: string;
   location?: string;
-  hourlyRate?: number; // Optional to override model rate
-  deposit?: number; // Optional to override model deposit
+  hourlyRate?: number;
+  deposit?: number;
 }
 
 export interface CycleModelDTO {
@@ -24,4 +23,15 @@ export interface CycleRentalDTO {
   totalFare: number;
   userId: number;
   cycleId: number;
+}
+
+export interface PaymentRequestDTO {
+  userId: number;
+  paymentMethod: string;
+  amount: number;
+  cookies: string;
+  type: string;
+  rentalId: number;
+  transactionType: string;
+  transactionID?: string;
 }

@@ -14,7 +14,7 @@ declare module "stripe" {
       create(params: {
         amount: number;
         currency: string;
-        source: string; // Token or payment method ID
+        source: string;
         description?: string;
         [key: string]: any;
       }): Promise<Charge>;

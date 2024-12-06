@@ -50,6 +50,7 @@ class SubscriptionService {
     const { isActive, plan, paymentMethod } = updateDTO;
     const subscriptionAmount = 20;
     const type = "Subscription";
+    const transactionType = "Payment";
 
     if (!["None", "Basic"].includes(plan)) {
       throw new AppError("Invalid subscription plan.", 400);
@@ -69,10 +70,10 @@ class SubscriptionService {
         paymentMethod,
         subscriptionAmount,
         cookies,
-        type
+        type,
+        transactionType
       );
 
-      // Mark subscription as pending until webhook confirms success
       await prisma.subscription.upsert({
         where: { userId },
         create: {
@@ -122,7 +123,8 @@ class SubscriptionService {
     paymentMethod: string,
     amount: number,
     cookies: string,
-    type: string
+    type: string,
+    transactionType: string
   ): Promise<any> {
     try {
       console.log(
@@ -135,7 +137,8 @@ class SubscriptionService {
         paymentMethod,
         amount,
         cookies,
-        type
+        type,
+        transactionType
       );
 
       return paymentResponse;

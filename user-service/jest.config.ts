@@ -11,10 +11,19 @@ const config: Config = {
     "!src/app.ts",
     "!src/**/*.{test,spec}.ts",
     "!src/routes/**",
+    "src/**/*.ts",
+    "!src/app.ts",
+    "!src/**/*.{test,spec}.ts",
+    "!src/routes/**",
   ],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "json-summary"],
-  coveragePathIgnorePatterns: ["/node_modules/", "/dist/", "/test/", "/src/routes/"],
+  coveragePathIgnorePatterns: [
+    "/node_modules/",
+    "/dist/",
+    "/test/",
+    "/src/routes/",
+  ],
   moduleDirectories: ["node_modules", path.join(__dirname, "src")],
   reporters: [
     "default",
@@ -27,7 +36,7 @@ const config: Config = {
     ],
   ],
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1", 
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
   testMatch: [
     "**/__tests__/**/*.+(ts|tsx|js)",

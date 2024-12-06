@@ -9,38 +9,39 @@ generator client {
 
 model CycleModel {
   id         Int       @id @default(autoincrement())
-  type       String    // e.g., "Basic", "Geared"
-  brand      String    // e.g., "BrandX", "BrandY"
-  hourlyRate Float     // Hourly rental rate
-  deposit    Float     @default(15.0)
+  type       String    
+  brand      String    
+  hourlyRate Float     
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   cycles     Cycle[]
 }
 
 model Cycle {
-  id          Int           @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   modelId     Int
   model       CycleModel     @relation(fields: [modelId], references: [id])
-  condition   String         // e.g., "new", "good", "damaged"
-  status      String         // e.g., "available", "rented", "under service"
-  location    String?    // Optional: Where the cycle is stored
-  hourlyRate  Float?     // Overrides model's rate if set
-  deposit     Float?     // Overrides model's deposit if set
+  condition   String         
+  status      String         
+  location    String?    
+  hourlyRate  Float?     
+  deposit     Float?     
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
-  rentals     CycleRental[]  @relation("CycleToRental") // Relation to CycleRental
+  rentals     CycleRental[]  @relation("CycleToRental") 
 }
 
 model CycleRental {
   id                 Int       @id @default(autoincrement())
   startTime          DateTime
-  duration           Int       // Rental duration in hours
+  duration           Int       
   expectedReturnTime DateTime
   actualReturnTime   DateTime?
   totalFare          Float
-  userId             Int       // User ID sent via API
+  balanceDue         Float     @default(0)
+  damageStatus       String
+  userId             Int       
   cycleId            Int
-  cycle              Cycle     @relation(fields: [cycleId], references: [id], name: "CycleToRental") // Relation to Cycle
-  paymentStatus      String    @default("Pending") // Status: Pending, Paid, Failed
+  cycle              Cycle     @relation(fields: [cycleId], references: [id], name: "CycleToRental") 
+  paymentStatus      String    @default("Pending") 
 }

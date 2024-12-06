@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import AIService from "../services/aiService";
-import { CycleStatusRequestDTO } from "../dtos/cycleStatusRequestDTO";
+import { CycleStatusRequestDTO } from "../dtos/aiStatusRequestDTO";
 
 export const sendCycleStatus = async (req: Request, res: Response) => {
   const { cycleId }: CycleStatusRequestDTO = req.body;
@@ -11,7 +11,7 @@ export const sendCycleStatus = async (req: Request, res: Response) => {
   } catch (error: any) {
     const statusCode = error.response?.status || 500;
     const errorMessage =
-      error.response?.data?.message || "Failed to send email.";
+      error.response?.data?.message || "Failed to send the AI ststus.";
     return res.status(statusCode).json({ error: errorMessage });
   }
 };

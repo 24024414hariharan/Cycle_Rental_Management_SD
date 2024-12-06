@@ -13,7 +13,6 @@ export const addCycleModel = async (
   try {
     const { type, brand, hourlyRate, deposit } = req.body;
 
-    // Build the CycleModel DTO using the builder pattern
     const model = new CycleModelBuilder()
       .setType(type)
       .setBrand(brand)
@@ -161,9 +160,13 @@ export const getRentalDetails = async (
   }
 };
 
-export const handleSubscriptionWebhook = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { userId, status, rentalID } = req.body;
+export const handleCycleWebhook = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { userId, status, rentalID, type } = req.body;
     const cookies = req.headers.cookie || "";
 
     if (!userId || !status) {
@@ -173,17 +176,43 @@ export const handleSubscriptionWebhook = asyncHandler(
       );
     }
 
-    // Update the subscription status based on webhook data
-    await cycleService.handleSubscriptionWebhook(
+    await cycleService.handleCycleWebhook(
       userId,
       status,
       cookies,
-      rentalID
+      rentalID,
+      type
     );
 
     res.status(200).json({
       status: "success",
       message: "Subscription status updated from webhook.",
     });
+  } catch (error: any) {
+    next(error);
   }
-);
+};
+
+export const returnCycle = asyncHandler(async (req: Request, res: Response) => {
+  const { rentalId } = req.body;
+  const userId = req.user?.userId;
+  const actualReturnTime = new Date();
+  const cookies = req.headers.cookie || "";
+
+  if (!userId) {
+    throw new AppError("Unauthorized: User information missing.", 401);
+  }
+
+  const result = await cycleService.processCycleReturn(
+    rentalId,
+    actualReturnTime,
+    userId,
+    cookies
+  );
+
+  res.status(200).json({
+    status: "success",
+    message: result.message,
+    data: result.data,
+  });
+});

@@ -1,4 +1,3 @@
-// src/events/PaymentEventSubject.ts
 import { Subject } from "../observers/Subject";
 import { Observer } from "../observers/Observer";
 
@@ -20,5 +19,4 @@ export class PaymentEventSubject implements Subject {
   }
 }
 
-// Exporting a singleton instance of PaymentEventSubject
 export const paymentEventSubject = new PaymentEventSubject();

@@ -1,12 +1,9 @@
-import { PaymentStrategy } from "./paymentStrategy"; // Import PaymentStrategy
+import { PaymentStrategy } from "./paymentStrategy";
 import paypal from "@paypal/checkout-server-sdk";
-import client from "../../clients/paypalClient"; // PayPal client instance
-import prisma from "../../clients/prisma"; // Database client for storing payment info
+import client from "../../clients/paypalClient";
+import prisma from "../../clients/prisma";
 
 export class PayPalPayment implements PaymentStrategy {
-  /**
-   * Process payment by creating an order with CAPTURE intent.
-   */
   async processPayment(
     amount: number,
     userId: number,
@@ -22,28 +19,26 @@ export class PayPalPayment implements PaymentStrategy {
 
     const request = new paypal.orders.OrdersCreateRequest();
     request.requestBody({
-      intent: "CAPTURE", // Directly create an order with CAPTURE intent
+      intent: "CAPTURE",
       purchase_units: [
         {
-          amount: { value: amount.toFixed(2), currency_code: "EUR" }, // Euros
+          amount: { value: amount.toFixed(2), currency_code: "EUR" },
           custom_id: JSON.stringify({
             userId,
             metadata: { cookies },
-            type,
-            rentalID,
-          }), // Metadata for tracking
-          description: `Subscription payment by User ${userId}`,
+            ...(rentalID ? { rentalID: rentalID.toString() } : {}),
+          }),
+          description: type,
         },
       ],
       application_context: {
-        return_url: `${process.env.PAYMENT_SERVICE_URL}/capture`, // Redirect here after approval
+        return_url: `${process.env.PAYMENT_SERVICE_URL}/capture`,
       },
     });
 
     try {
       const order = await client.execute(request);
 
-      // Extract approval URL for redirecting the user
       const approvalUrl = order.result.links?.find(
         (link: { rel: string; href: string }) => link.rel === "approve"
       )?.href;
@@ -54,22 +49,23 @@ export class PayPalPayment implements PaymentStrategy {
 
       console.log("Order created:", order.result);
 
-      // Store the order ID in the database with Pending status
       await prisma.payment.create({
         data: {
           userId,
           method: "PayPal",
           amount,
           type,
-          referenceId: order.result.id, // Order ID to track the payment
-          status: "Pending", // Initial status
+          referenceId: order.result.id,
+          status: "Pending",
+          rentalID,
         },
       });
 
-      // Return the order ID and approval URL for further processing
+      console.log(type);
+
       return {
         orderId: order.result.id,
-        approvalUrl, // Send this to the frontend for approval
+        approvalUrl,
       };
     } catch (error) {
       if (error instanceof Error) {
@@ -84,16 +80,13 @@ export class PayPalPayment implements PaymentStrategy {
     }
   }
 
-  /**
-   * Capture payment after the user approves the order.
-   */
   async capturePayment(orderId: string): Promise<any> {
     if (!orderId) {
       throw new Error("Order ID is required to capture payment.");
     }
 
     const request = new paypal.orders.OrdersCaptureRequest(orderId);
-    request.requestBody({}); // Required but can be empty for capture
+    request.requestBody({});
 
     try {
       const captureResponse = await client.execute(request);
@@ -123,21 +116,54 @@ export class PayPalPayment implements PaymentStrategy {
     }
   }
 
-  /**
-   * Handle refunds for a captured transaction.
-   */
-  async processRefund(transactionId: string, amount?: number): Promise<any> {
+  async processRefund(
+    transactionId: string,
+    amount: number,
+    userId: number,
+    cookies: string,
+    type: string,
+    rentalID: number
+  ): Promise<any> {
     if (!transactionId) {
       throw new Error("Transaction ID is required for refund.");
     }
+
+    const payment = await prisma.payment.findFirst({
+      where: {
+        OR: [{ referenceId: transactionId }, { rentalID }],
+      },
+    });
+
+    if (!payment) {
+      throw new Error(
+        "Payment record not found for the given transactionId or rentalID."
+      );
+    }
+
+    await prisma.refund.create({
+      data: {
+        paymentId: payment.id,
+        amount,
+        status: "Pending",
+        referenceId: transactionId,
+        rentalID,
+        userId,
+      },
+    });
 
     const refundRequest = new paypal.payments.CapturesRefundRequest(
       transactionId
     );
     refundRequest.requestBody({
       amount: amount
-        ? { value: amount.toFixed(2), currency_code: "EUR" } // Euros
-        : undefined, // Full refund if no amount specified
+        ? { value: amount.toFixed(2), currency_code: "EUR" }
+        : undefined,
+      custom_id: JSON.stringify({
+        userId,
+        metadata: { cookies },
+        ...(rentalID ? { rentalID: rentalID.toString() } : {}),
+        description: type,
+      }),
     });
 
     try {

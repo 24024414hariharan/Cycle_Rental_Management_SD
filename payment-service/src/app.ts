@@ -21,19 +21,17 @@ app.use(
       "http://localhost:7000",
       "http://localhost:4000",
       "http://localhost:6000",
-    ], // Allowed origins
-    credentials: true, // Allow cookies to be sent
+    ],
+    credentials: true,
   })
 );
 
-// Middleware for structured logs
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
 app.use(cookieParser());
 
-// Add observers to the PaymentEventSubject
 const subscriptionObserver = new SubscriptionObserver();
 const cycleRentalObserver = new CycleRentalObserver();
 
@@ -42,19 +40,14 @@ paymentEventSubject.addObserver(cycleRentalObserver);
 
 console.log("Observers added to PaymentEventSubject.");
 
-// Webhook routes
 app.use("/api/webhooks", webhookRouter);
 
-// General JSON parsing middleware for non-webhook routes
 app.use(express.json());
 
-// App routes
 app.use("/api", appRoutes);
 
-// Error handling middleware
 app.use(errorHandler);
 
-// 404 Handler
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });

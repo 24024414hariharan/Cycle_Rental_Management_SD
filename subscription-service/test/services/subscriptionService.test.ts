@@ -146,7 +146,8 @@ describe("SubscriptionService", () => {
         "Credit Card",
         20,
         "mock_cookie",
-        "Subscription"
+        "Subscription",
+        "Payment"
       );
       expect(result).toEqual({
         status: "pending",

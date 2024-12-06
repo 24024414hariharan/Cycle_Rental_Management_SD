@@ -2,9 +2,18 @@ import { BaseFare, IFare } from "../decorators/baseFare";
 import { DiscountPlanDecorator } from "../decorators/discountPlanDecorator";
 import axios from "axios";
 import prisma from "../clients/prisma";
-import { CycleDTO, CycleModelDTO, CycleRentalDTO } from "../dtos/cycldataDTO";
+import {
+  CycleDTO,
+  CycleModelDTO,
+  CycleRentalDTO,
+  PaymentRequestDTO,
+} from "../dtos/cycldataDTO";
 import { AppError } from "../middleware/errorHandler";
 import EmailServiceClient from "../clients/EmailServiceClient";
+import PaymentServiceClient from "../clients/paymentServiceClient";
+
+import dotenv from "dotenv";
+dotenv.config();
 
 class CycleService {
   async calculateFare(
@@ -13,10 +22,9 @@ class CycleService {
     cookies: string,
     userId: number
   ): Promise<any> {
-    // Fetch the cycle and its model details
     const cycle = await prisma.cycle.findUnique({
       where: { id: cycleId },
-      include: { model: true }, // Include the related CycleModel
+      include: { model: true },
     });
 
     if (!cycle) {
@@ -26,7 +34,6 @@ class CycleService {
     const deposit = cycle.deposit ?? cycle.model.deposit;
     const hourlyRate = cycle.hourlyRate ?? cycle.model.hourlyRate;
 
-    // Check subscription status
     const { data: subscription } = await axios.get(
       `${process.env.SUBSCRIPTION_SERVICE_URL}/subscription`,
       {
@@ -36,7 +43,6 @@ class CycleService {
 
     const isSubscribed = subscription.data.isActive;
 
-    // Use the Decorator Pattern for discount
     let fare: IFare = new BaseFare(hourlyRate, rentalHours, deposit);
     if (isSubscribed) {
       fare = new DiscountPlanDecorator(fare);
@@ -44,19 +50,19 @@ class CycleService {
 
     const totalFare = fare.calculate();
 
-    // Save rental details to the database
     const rental = await prisma.cycleRental.create({
       data: {
         startTime: new Date(),
         duration: rentalHours,
-        expectedReturnTime: new Date(Date.now() + rentalHours * 60 * 60 * 1000), // Calculate expected return time
+        expectedReturnTime: new Date(Date.now() + rentalHours * 60 * 60 * 1000),
         totalFare,
-        userId, // Assuming subscription contains the userId
+        userId,
         cycleId: cycle.id,
+        balanceDue: 0,
+        damageStatus: "None",
       },
     });
 
-    // Return the calculated fare and rental details
     return {
       rentalId: rental.id,
       cycleId: cycle.id,
@@ -70,7 +76,6 @@ class CycleService {
   }
 
   async addCycleModel(modelData: CycleModelDTO): Promise<any> {
-    // Add a new cycle model to the database
     const newModel = await prisma.cycleModel.create({
       data: {
         type: modelData.type,
@@ -84,7 +89,6 @@ class CycleService {
   }
 
   async getAllCycleModels(): Promise<any> {
-    // Fetch all available cycle models
     return await prisma.cycleModel.findMany();
   }
 
@@ -118,7 +122,7 @@ class CycleService {
         location: filters.location,
       },
       include: {
-        model: true, // Include CycleModel details
+        model: true,
       },
     });
   }
@@ -128,7 +132,7 @@ class CycleService {
       include: {
         cycle: {
           include: {
-            model: true, // Include CycleModel if needed
+            model: true,
           },
         },
       },
@@ -150,13 +154,16 @@ class CycleService {
     };
   }
 
-  async handleSubscriptionWebhook(
+  async handleCycleWebhook(
     userId: number,
     status: string,
     cookies: string,
-    rentalID: number
+    rentalID: number,
+    type: string
   ) {
     try {
+      console.log(`Webhook received for type: ${type}, status: ${status}`);
+
       const user = await axios.get(
         `${process.env.USER_URL}/api/users/profile`,
         {
@@ -166,61 +173,257 @@ class CycleService {
           },
         }
       );
-      if (status === "Success") {
-        const cycleRentalRecord = await prisma.cycleRental.findUnique({
-          where: { id: rentalID },
-          select: { cycleId: true }, // Only retrieve the cycleId field
-        });
 
-        if (!cycleRentalRecord || !cycleRentalRecord.cycleId) {
-          console.error(
-            `Cycle rental record not found for rentalID: ${rentalID}`
-          );
-          throw new Error("Cycle rental record not found.");
-        }
+      switch (status) {
+        case "Success":
+          await this.handleSuccess(user, type, rentalID, status);
+          break;
 
-        const cycleId = cycleRentalRecord.cycleId;
+        case "Failed":
+          await this.handleFailure(user, type, rentalID, status);
+          break;
 
-        await prisma.cycleRental.update({
-          where: { id: rentalID },
-          data: {
-            paymentStatus: "Success",
-          },
-        });
-
-        // Update the availability status in the cycle table
-        await prisma.cycle.update({
-          where: { id: cycleId },
-          data: {
-            status: "Unavailable", // Mark the cycle as unavailable
-          },
-        });
-
-        await EmailServiceClient.sendRentalUpdate(
-          user.data.data.email,
-          user.data.data.name,
-          status
-        );
-      } else if (status === "Failed") {
-        await prisma.cycleRental.update({
-          where: { id: rentalID },
-          data: {
-            paymentStatus: "Failed",
-          },
-        });
-
-        await EmailServiceClient.sendRentalUpdate(
-          user.data.data.email,
-          user.data.data.name,
-          status
-        );
-
-        console.log(`Cycle update failed for user ${userId}`);
+        default:
+          throw new AppError("Invalid webhook status received.", 400);
       }
     } catch (error) {
       console.error("Error updating Cycle from webhook:", error);
       throw new AppError("Failed to update Cycle from webhook.", 500);
     }
+  }
+
+  private async handleSuccess(
+    user: any,
+    type: string,
+    rentalID: number,
+    status: string
+  ) {
+    if (type === "Cycle rental") {
+      const cycleRentalRecord = await prisma.cycleRental.findUnique({
+        where: { id: rentalID },
+        select: { cycleId: true },
+      });
+
+      if (!cycleRentalRecord || !cycleRentalRecord.cycleId) {
+        console.error(
+          `Cycle rental record not found for rentalID: ${rentalID}`
+        );
+        throw new Error("Cycle rental record not found.");
+      }
+
+      const cycleId = cycleRentalRecord.cycleId;
+
+      await prisma.cycleRental.update({
+        where: { id: rentalID },
+        data: {
+          paymentStatus: "Success",
+        },
+      });
+
+      await prisma.cycle.update({
+        where: { id: cycleId },
+        data: {
+          status: "Unavailable",
+        },
+      });
+
+      await EmailServiceClient.sendRentalUpdate(
+        user.data.data.email,
+        user.data.data.name,
+        status
+      );
+      console.log(`Cycle rental success for rentalID: ${rentalID}`);
+    } else if (type === "Deposit refund") {
+      await prisma.cycleRental.update({
+        where: { id: rentalID },
+        data: {
+          paymentStatus: "Settled",
+        },
+      });
+
+      console.log(`Deposit refund settled for rentalID: ${rentalID}`);
+    } else {
+      console.warn(`Unhandled type for success: ${type}`);
+    }
+  }
+
+  private async handleFailure(
+    user: any,
+    type: string,
+    rentalID: number,
+    status: string
+  ) {
+    if (type === "Cycle rental") {
+      await prisma.cycleRental.update({
+        where: { id: rentalID },
+        data: {
+          paymentStatus: "Failed",
+        },
+      });
+
+      await EmailServiceClient.sendRentalUpdate(
+        user.data.data.email,
+        user.data.data.name,
+        status
+      );
+
+      console.log(`Cycle rental failed for rentalID: ${rentalID}`);
+    } else if (type === "Deposit refund") {
+      await prisma.cycleRental.update({
+        where: { id: rentalID },
+        data: {
+          paymentStatus: "Unsettled",
+        },
+      });
+
+      console.log(`Deposit refund unsettled for rentalID: ${rentalID}`);
+    } else {
+      console.warn(`Unhandled type for failure: ${type}`);
+    }
+  }
+
+  async processCycleReturn(
+    rentalId: number,
+    actualReturnTime: Date,
+    userId: number,
+    cookies: string
+  ): Promise<{ message: string; data: any }> {
+    const rental = await prisma.cycleRental.findUnique({
+      where: { id: rentalId },
+      include: {
+        cycle: {
+          include: {
+            model: true,
+          },
+        },
+      },
+    });
+
+    if (!rental) throw new AppError("Rental record not found.", 404);
+    if (rental.userId !== userId)
+      throw new AppError("Unauthorized action.", 403);
+
+    const aiStatusCheck = await axios.post(
+      `${process.env.AI_URL}/ai-check/status-check?rentalID=${rental.id}`,
+      {
+        withCredentials: true,
+        cycleId: rental.id,
+        headers: {
+          cookie: cookies,
+        },
+      }
+    );
+
+    await prisma.cycleRental.update({
+      where: { id: rentalId },
+      data: { damageStatus: aiStatusCheck.data.status.toString() },
+    });
+
+    if (aiStatusCheck.data.status) {
+      return this.handleGoodCycle(rental, actualReturnTime, userId, cookies);
+    } else {
+      return this.handleBadCycle(rental, actualReturnTime, userId, cookies);
+    }
+  }
+
+  private async handleGoodCycle(
+    rental: any,
+    actualReturnTime: Date,
+    userId: number,
+    cookies: string
+  ): Promise<{ message: string; data: any }> {
+    const { expectedReturnTime, cycle } = rental;
+    const deposit = cycle.deposit ?? cycle.model.deposit;
+    const cycleHourRate = cycle.hourlyRate ?? cycle.model.hourlyRate;
+
+    const extraHours = Math.max(
+      0,
+      (actualReturnTime.getTime() - expectedReturnTime.getTime()) /
+        (1000 * 60 * 60)
+    );
+
+    const lateFees = extraHours * (cycleHourRate || 0);
+    const cycleDeposit = deposit || 0;
+
+    if (lateFees <= cycleDeposit) {
+      const refundableDeposit = cycleDeposit - lateFees;
+
+      await prisma.cycleRental.update({
+        where: { id: rental.id },
+        data: {
+          actualReturnTime,
+          totalFare: rental.totalFare + lateFees,
+          balanceDue: 0.0,
+        },
+      });
+
+      if (refundableDeposit > 0) {
+        const paymentReference = await axios.get(
+          `${process.env.PAYMENT_URL}/payments/get-payment-details?rentalID=${rental.id}`,
+          {
+            withCredentials: true,
+            headers: {
+              cookie: cookies,
+            },
+          }
+        );
+
+        const type = "Deposit refund";
+        const transactionType = "Refund";
+
+        const paymentRequest: PaymentRequestDTO = {
+          userId,
+          paymentMethod: paymentReference.data.data.method,
+          amount: refundableDeposit,
+          cookies,
+          type,
+          rentalId: rental.id,
+          transactionType,
+          transactionID: paymentReference.data.data.referenceId,
+        };
+
+        await PaymentServiceClient.processRefund(paymentRequest);
+      }
+
+      return {
+        message: `Cycle returned successfully. ${
+          refundableDeposit > 0
+            ? "No Late fees and refund processed."
+            : "No Late fees and no refund is due."
+        }`,
+        data: { refundableDeposit, lateFees },
+      };
+    } else {
+      const additionalPaymentDue = lateFees - cycleDeposit;
+
+      await prisma.cycleRental.update({
+        where: { id: rental.id },
+        data: {
+          actualReturnTime,
+          totalFare: rental.totalFare + lateFees,
+          balanceDue: additionalPaymentDue,
+        },
+      });
+
+      return {
+        message: `Cycle returned successfully. Late fees exceeded the deposit. An additional payment of €${additionalPaymentDue.toFixed(
+          2
+        )} is required and will be collect in hand.`,
+        data: { additionalPaymentDue, lateFees },
+      };
+    }
+  }
+
+  private async handleBadCycle(
+    rental: any,
+    actualReturnTime: Date,
+    userId: number,
+    cookies: string
+  ): Promise<{ message: string; data: any }> {
+    return {
+      message: `Cycle is damaged`,
+      data: {},
+    };
   }
 }
 

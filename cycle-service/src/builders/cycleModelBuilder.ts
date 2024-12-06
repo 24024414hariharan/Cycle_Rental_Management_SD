@@ -1,5 +1,3 @@
-// src/builders/cycleModelBuilder.ts
-
 import { CycleModelDTO } from "../dtos/cycldataDTO";
 
 export class CycleModelBuilder implements CycleModelDTO {
@@ -42,7 +40,7 @@ export class CycleModelBuilder implements CycleModelDTO {
       type: this.type,
       brand: this.brand,
       hourlyRate: this.hourlyRate,
-      deposit: this.deposit || 15.0, // Default deposit
+      deposit: this.deposit || 15.0,
     };
   }
 }
