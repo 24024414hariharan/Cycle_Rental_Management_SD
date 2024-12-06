@@ -15,9 +15,9 @@ COPY . .
 
 RUN npx prisma validate
 
-RUN npx prisma generate
+# RUN npx prisma generate
 
-RUN npx prisma migrate dev
+# RUN npx prisma migrate dev
 
 # Build the TypeScript code
 RUN npm run build
