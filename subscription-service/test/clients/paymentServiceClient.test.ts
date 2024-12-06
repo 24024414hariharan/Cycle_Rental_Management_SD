@@ -15,9 +15,12 @@ describe("PaymentServiceClient", () => {
     const amount = 50;
     const cookies = "authToken=mockToken";
     const type = "Subscription";
+    const transactionType = "Payment";
 
     it("should successfully process the payment", async () => {
-      const mockResponse = { data: { success: true, message: "Payment successful" } };
+      const mockResponse = {
+        data: { success: true, message: "Payment successful" },
+      };
 
       mockedAxios.post.mockResolvedValueOnce(mockResponse);
 
@@ -27,12 +30,13 @@ describe("PaymentServiceClient", () => {
         paymentMethod,
         amount,
         cookies,
-        type
+        type,
+        transactionType
       );
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
         `${paymentServiceUrl}/process`,
-        { userId, plan, paymentMethod, amount, type },
+        { userId, plan, paymentMethod, amount, type, transactionType },
         {
           withCredentials: true,
           headers: {
@@ -61,13 +65,14 @@ describe("PaymentServiceClient", () => {
           paymentMethod,
           amount,
           cookies,
-          type
+          type,
+          transactionType
         )
       ).rejects.toThrow("Payment processing failed.");
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
         `${paymentServiceUrl}/process`,
-        { userId, plan, paymentMethod, amount, type },
+        { userId, plan, paymentMethod, amount, type, transactionType },
         {
           withCredentials: true,
           headers: {
@@ -89,13 +94,14 @@ describe("PaymentServiceClient", () => {
           paymentMethod,
           amount,
           cookies,
-          type
+          type,
+          transactionType
         )
       ).rejects.toThrow("Payment processing failed.");
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
         `${paymentServiceUrl}/process`,
-        { userId, plan, paymentMethod, amount, type },
+        { userId, plan, paymentMethod, amount, type, transactionType },
         {
           withCredentials: true,
           headers: {
@@ -117,13 +123,14 @@ describe("PaymentServiceClient", () => {
           paymentMethod,
           amount,
           "",
-          type
+          type,
+          transactionType
         )
       ).rejects.toThrow("Payment processing failed.");
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
         `${paymentServiceUrl}/process`,
-        { userId, plan, paymentMethod, amount, type },
+        { userId, plan, paymentMethod, amount, type, transactionType },
         {
           withCredentials: true,
           headers: {

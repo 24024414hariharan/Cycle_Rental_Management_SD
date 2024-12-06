@@ -18,6 +18,7 @@ describe("PaymentServiceClient", () => {
       type: "RENTAL",
       rentalId: 123,
       cookies: "authToken=mockToken",
+      transactionType: "Payment",
     };
 
     it("should process payment successfully", async () => {
@@ -34,6 +35,7 @@ describe("PaymentServiceClient", () => {
           amount: mockRequest.amount,
           type: mockRequest.type,
           rentalID: mockRequest.rentalId,
+          transactionType: mockRequest.transactionType,
         },
         { headers: { Cookie: mockRequest.cookies } }
       );
@@ -63,6 +65,7 @@ describe("PaymentServiceClient", () => {
           amount: mockRequest.amount,
           type: mockRequest.type,
           rentalID: mockRequest.rentalId,
+          transactionType: mockRequest.transactionType,
         },
         { headers: { Cookie: mockRequest.cookies } }
       );
@@ -84,6 +87,7 @@ describe("PaymentServiceClient", () => {
           amount: mockRequest.amount,
           type: mockRequest.type,
           rentalID: mockRequest.rentalId,
+          transactionType: mockRequest.transactionType,
         },
         { headers: { Cookie: mockRequest.cookies } }
       );
