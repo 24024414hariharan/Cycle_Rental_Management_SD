@@ -13,9 +13,9 @@ RUN npm install
 # Copy the rest of the application code to the container
 COPY . .
 
-RUN npx prisma generate
+# RUN npx prisma generate
 
-RUN npx prisma migrate dev
+# RUN npx prisma migrate dev
 
 # Build the TypeScript code
 RUN npm run build
