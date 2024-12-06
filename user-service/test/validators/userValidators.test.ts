@@ -6,7 +6,6 @@ import {
 } from "../../src/validators/userValidators";
 import { validationResult } from "express-validator";
 
-// Helper function to create a test app
 const createTestApp = (validators: any[]) => {
   const app = express();
   app.use(express.json());
@@ -32,7 +31,7 @@ describe("User Validators", () => {
     it("should pass with valid input", async () => {
       const response = await request(app).post("/test").send({
         email: "test@example.com",
-        password: "ValidPass1@", // Meets criteria
+        password: "ValidPass1@",
         name: "John Doe",
         dateOfBirth: "1990-01-01",
         phoneNumber: "1234567890",
@@ -81,7 +80,7 @@ describe("User Validators", () => {
     it("should pass with valid input", async () => {
       const response = await request(app).post("/test").send({
         email: "test@example.com",
-        password: "Password@123", // Meets criteria
+        password: "Password@123",
       });
       expect(response.status).toBe(200);
       expect(response.body.message).toBe("Validation passed");
@@ -89,7 +88,7 @@ describe("User Validators", () => {
 
     it("should fail when email is missing", async () => {
       const response = await request(app).post("/test").send({
-        password: "ValidPassword1@", // Valid password
+        password: "ValidPassword1@",
       });
       expect(response.status).toBe(400);
       expect(response.body.errors[0].msg).toBe("Must be a valid email");
@@ -97,9 +96,9 @@ describe("User Validators", () => {
 
     it("should fail when password is missing", async () => {
       const response = await request(app).post("/test").send({
-        email: "test@example.com", // Valid email
+        email: "test@example.com",
       });
-      console.log(response.body); // Log the response for debugging
+      console.log(response.body);
       expect(response.status).toBe(400);
       expect(response.body.errors[0].msg).toBe("Password is required");
     });

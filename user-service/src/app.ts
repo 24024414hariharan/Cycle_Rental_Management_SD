@@ -15,8 +15,8 @@ app.use(
       `${process.env.cycleDomain}`,
       `${process.env.paymentDomain}`,
       `${process.env.subscriptionDomain}`,
-    ], // Allowed origins
-    credentials: true, // Allow cookies to be sent
+    ],
+    credentials: true,
   })
 );
 

@@ -20,7 +20,7 @@ export class PaymentServiceClient {
         },
         { headers: { Cookie: request.cookies } }
       );
-      console.log("Payment API response:", response.data); // Log for debugging
+      console.log("Payment API response:", response.data);
       return response.data;
     } catch (error: any) {
       if (axios.isAxiosError(error)) {

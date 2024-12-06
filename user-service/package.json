@@ -13,14 +13,6 @@
     "owasp": "owasp-dependency-check --project \"CYCLE_RENTAL\" -f HTML",
     "test:coverage": "jest --coverage"
   },
-  "simple-git-hooks": {
-    "pre-commit": "npx lint-staged"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "npm test -- --bail --findRelatedTests"
-    ]
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",

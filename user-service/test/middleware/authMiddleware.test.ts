@@ -3,7 +3,6 @@ import { verifyToken } from "../../src/utils/tokenUtil";
 import { AppError } from "../../src/middleware/errorHandler";
 import { Request, Response, NextFunction } from "express";
 
-// Mock the dependencies
 jest.mock("../../src/utils/tokenUtil");
 
 describe("authMiddleware", () => {

@@ -6,7 +6,6 @@ describe("asyncHandler utility", () => {
   const app = express();
 
   beforeAll(() => {
-    // Simulate an async route handler using asyncHandler
     app.get(
       "/success",
       asyncHandler(async (req: Request, res: Response) => {
@@ -21,7 +20,6 @@ describe("asyncHandler utility", () => {
       })
     );
 
-    // Error handling middleware
     app.use((err: Error, req: Request, res: Response, next: any) => {
       res.status(500).json({ error: err.message });
     });

@@ -52,7 +52,7 @@ export const loginValidator = [
   body("password")
     .notEmpty()
     .withMessage("Password is required")
-    .bail() // Stop further validation if this fails
+    .bail()
     .isLength({ min: 8, max: 32 })
     .withMessage("Password must be 8-32 characters long"),
 ];

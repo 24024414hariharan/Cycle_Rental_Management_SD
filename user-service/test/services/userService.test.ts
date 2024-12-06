@@ -14,7 +14,7 @@ import { UserFactoryProvider } from "../../src/factories/userFactory";
 
 jest.mock("../../src/clients/prisma", () => ({
   user: {
-    create: jest.fn(), // Mock create
+    create: jest.fn(),
     findUnique: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -33,7 +33,7 @@ const mockCreateUser = jest.fn(() =>
 jest.mock("../../src/factories/userFactory", () => ({
   UserFactoryProvider: {
     getFactory: jest.fn(() => ({
-      createUser: mockCreateUser, // Attach the mock function here
+      createUser: mockCreateUser,
     })),
   },
 }));
@@ -71,7 +71,7 @@ describe("UserService", () => {
     isActive: true,
     role: Role.CUSTOMER,
     passwordResetToken: "mockResetToken",
-    passwordResetExpires: new Date(Date.now() + 3600 * 1000), // 1 hour from now
+    passwordResetExpires: new Date(Date.now() + 3600 * 1000),
   };
 
   beforeEach(() => {
@@ -102,19 +102,16 @@ describe("UserService", () => {
       console.log("Test input for register:", userWithoutRole);
   
       await UserService.register(userWithoutRole);
-  
-      // Validate factory was called with the correct role
+
       expect(UserFactoryProvider.getFactory).toHaveBeenCalledWith("CUSTOMER");
-  
-      // Validate createUser was called on the mock factory
+
       expect(mockCreateUser).toHaveBeenCalledWith(
         expect.objectContaining({"dateOfBirth": "1990-01-01", "email": "testuser@example.com", "identification": "ID12345", "name": "Test User", "password": "SecurePass123!", "phoneNumber": "1234567890"})
       );
-  
-      // Validate email verification logic
+
       expect(EmailServiceClient.sendVerificationEmail).toHaveBeenCalledWith(
         "testuser@example.com",
-        expect.any(String), // Verification URL
+        expect.any(String),
         "Test User"
       );
     });
@@ -139,7 +136,7 @@ describe("UserService", () => {
     it("should throw an error if the reset token is expired", async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({
         ...mockUser,
-        passwordResetExpires: new Date(Date.now() - 1000), // Expired
+        passwordResetExpires: new Date(Date.now() - 1000),
       });
 
       await expect(

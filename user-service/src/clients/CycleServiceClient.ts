@@ -20,7 +20,7 @@ class CycleServiceClient {
       {
         params: filters,
         headers: {
-          Cookie: cookies, // Include cookies in the headers
+          Cookie: cookies,
         },
       }
     );
@@ -38,7 +38,7 @@ class CycleServiceClient {
         { cycleId, rentalHours },
         {
           headers: {
-            Cookie: cookies, // Include cookies in the headers
+            Cookie: cookies,
           },
         }
       );
@@ -56,7 +56,7 @@ class CycleServiceClient {
       `${this.cycleServiceUrl}/cycles/rental/${rentalID}`,
       {
         headers: {
-          Cookie: cookies, // Include cookies in the headers
+          Cookie: cookies,
         },
       }
     );

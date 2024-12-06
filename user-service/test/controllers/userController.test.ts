@@ -70,7 +70,7 @@ describe("userController", () => {
       } as any);
 
       const req = mockRequest();
-      req.body = {}; // Empty body to simulate validation errors
+      req.body = {};
       const res = mockResponse();
       const next = mockNext();
 
@@ -117,7 +117,7 @@ describe("userController", () => {
       } as any);
     
       const req = mockRequest();
-      req.body = {}; // Simulate missing fields
+      req.body = {};
       const res = mockResponse();
       const next = mockNext();
     
@@ -155,18 +155,18 @@ describe("userController", () => {
   
       await userController.verifyEmail(req, res, next);
   
-      expect(next).toHaveBeenCalledWith(error); // Match the actual error thrown
+      expect(next).toHaveBeenCalledWith(error);
     });
   
     it("should call next with a generic Error if token is missing", async () => {
       const req = mockRequest();
-      req.query = {}; // No token
+      req.query = {};
       const res = mockResponse();
       const next = mockNext();
   
       await userController.verifyEmail(req, res, next);
   
-      expect(next).toHaveBeenCalledWith(new Error("Verification failed")); // Match the actual error
+      expect(next).toHaveBeenCalledWith(new Error("Verification failed"));
     });
   });
 
@@ -396,7 +396,7 @@ describe("userController", () => {
     it("should handle error if no valid fields are provided", async () => {
       const req = mockRequest();
       req.user = { userId: 1 };
-      req.body = {}; // Empty body
+      req.body = {};
       const res = mockResponse();
       const next = mockNext();
 
@@ -490,7 +490,7 @@ describe("userController", () => {
       } as any;
     
       mockedUserService.getUserByEmail.mockResolvedValue(mockUser);
-      mockedUserService.comparePasswords.mockResolvedValue(false); // Password mismatch
+      mockedUserService.comparePasswords.mockResolvedValue(false);
     
       const req = mockRequest();
       req.body = { email: "test@example.com", password: "wrongPassword" };
@@ -506,7 +506,7 @@ describe("userController", () => {
 
   describe("logout", () => {
     it("should handle user not authenticated", async () => {
-      const req = mockRequest(); // No user info
+      const req = mockRequest();
       const res = mockResponse();
       const next = mockNext();
 
@@ -516,7 +516,7 @@ describe("userController", () => {
     });
 
     it("should call next with an error if user is not authenticated", async () => {
-      const req = mockRequest(); // No user info
+      const req = mockRequest();
       const res = mockResponse();
       const next = mockNext();
 
@@ -526,7 +526,7 @@ describe("userController", () => {
     });
 
     it("should call next with an AppError when user is not authenticated during logout", async () => {
-      const req = mockRequest(); // No user info
+      const req = mockRequest();
       const res = mockResponse();
       const next = mockNext();
     
@@ -604,7 +604,7 @@ describe("userController", () => {
     });
 
     it("should handle unauthorized access", async () => {
-      const req = mockRequest(); // No user info
+      const req = mockRequest();
       const res = mockResponse();
       const next = mockNext();
 
@@ -674,7 +674,7 @@ describe("userController", () => {
     it("should handle missing cookies for calculating fare", async () => {
       const req = mockRequest();
       req.body = { cycleId: 1, rentalHours: 2 };
-      req.headers.cookie = undefined; // No cookies
+      req.headers.cookie = undefined;
       const res = mockResponse();
       const next = mockNext();
   
@@ -746,7 +746,7 @@ describe("userController", () => {
   
     it("should handle missing required fields", async () => {
       const req = mockRequest();
-      req.body = {}; // Missing rentalId and paymentMethod
+      req.body = {};
       req.user = { userId: 1 };
       req.headers.cookie = "authToken=mockToken";
       const res = mockResponse();
