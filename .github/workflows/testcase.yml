@@ -1,44 +1,53 @@
-name: Pull Request Tests
+name: Run Tests on Pull Request
 
-# Trigger workflow on pull request events
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
-    branches:
-      - main
-      - develop # Add any branches where PRs should trigger tests
-    paths:
-      - '**.ts' # Optional: Limit to specific file types or paths
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 jobs:
-  run-tests:
-    name: Run Tests on Pull Request
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
-      - name: Checkout repository
+      # Checkout the code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       # Set up Node.js
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16' # Specify your project's Node.js version
+          node-version: '16' # Specify Node.js version
           cache: 'npm'
 
       # Install dependencies
-      - name: Install dependencies
-        run: npm ci
+      - name: Install Dependencies
+        run: npm ci # Use `ci` for clean installs with lockfile
+        env:
+          CI: true
 
-      # Run lint-staged test cases
-      - name: Run tests
-        run: npm test -- --bail --verbose
+      # Run tests with Jest
+      - name: Run Tests
+        run: |
+          mkdir -p ./test-results
+          npm test -- --ci --coverage --outputFile=./test-results/test-report.xml
+        env:
+          CI: true
 
-      # Upload test artifacts (optional)
-      - name: Upload test artifacts
-        if: failure()
+      # Upload test results
+      - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
           name: test-results
-          path: ./test-results
+          path: ./test-results/test-report.xml
+
+      # Upload coverage report
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: ./coverage
