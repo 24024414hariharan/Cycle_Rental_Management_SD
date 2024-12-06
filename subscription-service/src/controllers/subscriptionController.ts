@@ -74,7 +74,7 @@ export const handleSubscriptionWebhook = asyncHandler(
         message: "Subscription status updated from webhook.",
       });
     } catch (error) {
-      next(error) // Pass the error to `asyncHandler`
+      next(error);
     }
   }
 );

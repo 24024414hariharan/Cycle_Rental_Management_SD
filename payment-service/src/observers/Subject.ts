@@ -1,4 +1,3 @@
-// src/observers/Subject.ts
 import { Observer } from "./Observer";
 
 export interface Subject {

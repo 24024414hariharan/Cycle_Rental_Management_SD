@@ -15,6 +15,7 @@ model Payment {
   status      String 
   type        String
   referenceId String?  @unique
+  rentalID    Int?     @unique
   captureId   String?
   createdAt   DateTime @default(now()) 
   updatedAt   DateTime @updatedAt
@@ -26,9 +27,12 @@ model Payment {
 model Refund {
   id          Int      @id @default(autoincrement())
   paymentId   Int      @unique
+  rentalID    Int
+  userId      Int
   amount      Float 
   status      String 
   referenceId String?  @unique
+  refundId    String?  @unique
   createdAt   DateTime @default(now())  
   updatedAt   DateTime @updatedAt 
 

@@ -6,7 +6,8 @@ import {
   getAllCycles,
   getCycleModels,
   getRentalDetails,
-  handleSubscriptionWebhook,
+  handleCycleWebhook,
+  returnCycle,
 } from "../controllers/cycleController";
 import { validateToken } from "../middleware/authMiddleware";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -36,6 +37,8 @@ router.post("/calculate-fare", validateToken, asyncHandler(calculateFare));
 
 router.get("/rental/:rentalId", validateToken, asyncHandler(getRentalDetails));
 
-router.post("/update-status", validateToken, handleSubscriptionWebhook);
+router.post("/update-status", validateToken, asyncHandler(handleCycleWebhook));
+
+router.post("/return-cycle", validateToken, returnCycle);
 
 export default router;

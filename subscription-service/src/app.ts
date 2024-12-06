@@ -14,8 +14,8 @@ app.use(
       "http://localhost:3000",
       "http://localhost:8000",
       "http://localhost:7000",
-    ], // Allowed origins
-    credentials: true, // Allow cookies to be sent
+    ],
+    credentials: true,
   })
 );
 

@@ -7,7 +7,6 @@ import axios from "axios";
 
 export const stripeWebhookHandler = async (req: Request, res: Response) => {
   const sig = req.headers["stripe-signature"] as string;
-
   try {
     const event = stripe.webhooks.constructEvent(
       req.body,
@@ -15,7 +14,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       process.env.STRIPE_WEBHOOK_SECRET as string
     );
 
-    switch (event.type) {
+    switch (event.type as string) {
       case "payment_intent.succeeded":
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
@@ -26,6 +25,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
         const cookies = paymentIntent.metadata?.cookies;
         const type = paymentIntent.metadata?.type;
         const rentalID = paymentIntent.metadata?.rentalID;
+        const referenceId = paymentIntent.id;
 
         if (!userId) {
           console.error("[Stripe Webhook] Error: Missing userId in metadata.");
@@ -40,8 +40,9 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
           userId,
           cookies,
           type,
-          paymentIntentId: paymentIntent.id,
+          referenceId,
           rentalID,
+          isRefund: false,
         });
 
         console.log(`[Stripe Webhook] Processed payment: ${status}`);
@@ -59,6 +60,50 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       case "charge.succeeded":
         console.log(`[Stripe Webhook] Skipping event type: ${event.type}`);
         break;
+
+      case "refund.updated": {
+        const refund = event.data.object as Stripe.Refund;
+
+        const refundStatus = refund.status;
+        const type = refund.metadata?.type;
+        const refundId = refund.id;
+        const userId = refund.metadata?.userId;
+        const rentalID = refund.metadata?.rentalID;
+        const cookies = refund.metadata?.cookies;
+        const refundAmount = refund.amount / 100;
+        const referenceId = refund.payment_intent;
+
+        if (!userId) {
+          console.error(
+            "[Stripe Webhook] Error: Missing userId in refund metadata."
+          );
+          res.status(400).send("Webhook Error: Missing userId.");
+          return;
+        }
+
+        const status = refundStatus === "succeeded" ? "Success" : "Failed";
+        console.log(status);
+
+        console.log(
+          `[Stripe Webhook] Refund ${refundStatus} for Refund ID: ${refundId}`
+        );
+
+        const paymethod = "Stripe";
+
+        await paymentEventSubject.notify(status, paymethod, {
+          status,
+          refundId,
+          userId,
+          rentalID,
+          refundAmount,
+          cookies,
+          isRefund: true,
+          type,
+          referenceId,
+        });
+
+        break;
+      }
 
       default:
         console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`);
@@ -135,8 +180,10 @@ export const paypalWebhookHandler = async (req: Request, res: Response) => {
 
     const event = req.body;
     const captureId = event.resource?.id;
-    const orderId = event.resource?.supplementary_data?.related_ids?.order_id;
-    const customData = event.resource?.custom_id
+    const referenceId =
+      event.resource?.supplementary_data?.related_ids?.order_id;
+    const customData = event.resource?.custom_id;
+    const description = event.resource?.description
       ? JSON.parse(event.resource.custom_id)
       : null;
 
@@ -148,7 +195,7 @@ export const paypalWebhookHandler = async (req: Request, res: Response) => {
 
     const userId = customData.userId;
     const cookies = customData.metadata.cookies;
-    const type = customData.type;
+    const type = description;
     const rentalID = customData.rentalID;
     const paymethod = "PayPal";
 
@@ -162,7 +209,7 @@ export const paypalWebhookHandler = async (req: Request, res: Response) => {
       const status = "Success";
 
       await paymentEventSubject.notify(status, paymethod, {
-        orderId,
+        referenceId,
         status,
         userId,
         cookies,
@@ -181,7 +228,7 @@ export const paypalWebhookHandler = async (req: Request, res: Response) => {
 
       const status = "Failed";
       await paymentEventSubject.notify(status, paymethod, {
-        orderId,
+        referenceId,
         status,
         userId,
         cookies,

@@ -1,4 +1,3 @@
-// src/observers/SubscriptionObserver.ts
 import { Observer } from "./Observer";
 import {
   handleStripePaymentUpdate,
@@ -9,7 +8,7 @@ export class SubscriptionObserver implements Observer {
   async update(event: string, paymethod: string, data: any): Promise<void> {
     const type = data.type;
 
-    if (type !== "Subscription") return;
+    if (type !== "Subscription") return; // Ensure this observer only handles subscriptions.
 
     if (event === "Success" || event === "Failed") {
       const { userId, status, cookies, paymentIntentId, orderId, captureId } =
@@ -21,22 +20,23 @@ export class SubscriptionObserver implements Observer {
 
       try {
         if (paymethod === "Stripe") {
-          await handleStripePaymentUpdate(
-            paymentIntentId,
+          // Pass only relevant data for subscriptions
+          await handleStripePaymentUpdate({
+            referenceId: paymentIntentId,
             status,
             userId,
             cookies,
-            type
-          );
+            type,
+          });
         } else {
-          await handlePayPalPaymentUpdate(
-            orderId,
+          await handlePayPalPaymentUpdate({
+            referenceId: orderId,
             status,
             userId,
             captureId,
             cookies,
-            type
-          );
+            type,
+          });
         }
       } catch (error) {
         console.error(

@@ -17,6 +17,7 @@ export class PaymentServiceClient {
           amount: request.amount,
           type: request.type,
           rentalID: request.rentalId,
+          transactionType: request.transactionType,
         },
         { headers: { Cookie: request.cookies } }
       );

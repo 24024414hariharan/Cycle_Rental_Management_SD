@@ -1,158 +1,199 @@
 import prisma from "../clients/prisma";
-import axios from "axios";
+import { notifyService } from "../utils/notifyService";
 
 const subscriptionServiceUrl = `${process.env.SUBSCRIPTION_SERVICE_URL}/api/subscription/update-status`;
-const cycleServiceUrl = `${process.env.Cycle_SERVICE_URL}/api/cycles/update-status`;
+const cycleServiceUrl = `${process.env.CYCLE_SERVICE_URL}/api/cycles/update-status`;
 
-// Stripe-specific payment update handler
-export const handleStripePaymentUpdate = async (
-  referenceId: string,
-  status: string,
-  userId: string,
-  cookies: string,
-  type: string,
-  rentalID?: string
-) => {
+export const handleStripePaymentUpdate = async ({
+  referenceId,
+  status,
+  userId,
+  cookies,
+  type,
+  isRefund = false,
+  rentalID,
+  refundId,
+  refundAmount,
+}: {
+  referenceId: string;
+  status: string;
+  userId: string;
+  cookies: string;
+  type: string;
+  isRefund?: boolean;
+  rentalID?: string;
+  refundId?: string;
+  refundAmount?: number;
+}): Promise<void> => {
   try {
-    console.log("Stripe payment update received:", {
+    console.log("Hi");
+    console.log(isRefund);
+    console.log("Stripe update received:", {
       referenceId,
       status,
       userId,
       rentalID,
+      isRefund,
     });
 
-    // Check if the payment exists
-    const paymentRecord = await prisma.payment.findUnique({
-      where: { referenceId },
-    });
-
-    if (!paymentRecord) {
-      console.error("Stripe payment record not found:", { referenceId });
-      throw new Error("Payment record not found.");
-    }
-
-    // Update payment status
-    await prisma.payment.update({
-      where: { referenceId },
-      data: { status },
-    });
-
-    console.log(`Stripe payment ${status.toLowerCase()} for userId: ${userId}`);
-
-    if (type === "Subscription") {
-      await notifySubscriptionService(userId, status, cookies);
+    if (isRefund) {
+      await handleRefundUpdate(
+        referenceId,
+        refundId,
+        status,
+        userId,
+        cookies,
+        rentalID,
+        type
+      );
     } else {
-      if (rentalID !== undefined) {
-        await notifyCycleService(userId, status, cookies, rentalID);
-      }
+      await handlePaymentUpdate(
+        referenceId,
+        status,
+        userId,
+        cookies,
+        type,
+        rentalID
+      );
     }
   } catch (err: any) {
-    console.error(`Error updating Stripe payment: ${err.message}`);
-    throw new Error("Failed to handle Stripe payment update.");
+    console.error(`Error handling Stripe update: ${err.message}`);
+    throw new Error(`Failed to handle Stripe update.`);
   }
 };
 
-// PayPal-specific payment update handler
-export const handlePayPalPaymentUpdate = async (
-  referenceId: string,
-  status: string,
-  userId: string,
-  captureId: string,
-  cookies: string,
-  type: string,
-  rentalID?: string
-) => {
+export const handlePayPalPaymentUpdate = async ({
+  referenceId,
+  status,
+  userId,
+  cookies,
+  type,
+  isRefund = false,
+  rentalID,
+  refundId,
+  refundAmount,
+  captureId,
+}: {
+  referenceId: string;
+  status: string;
+  userId: string;
+  cookies: string;
+  type: string;
+  isRefund?: boolean;
+  rentalID?: string;
+  refundId?: string;
+  refundAmount?: number;
+  captureId?: string;
+}): Promise<void> => {
   try {
-    console.log("PayPal payment update received:", {
+    console.log("PayPal update received:", {
       referenceId,
       status,
       userId,
-      captureId,
+      rentalID,
+      isRefund,
     });
 
-    // Find the payment record by orderId
-    const paymentRecord = await prisma.payment.findUnique({
-      where: { referenceId },
-    });
-
-    if (!paymentRecord) {
-      console.error("PayPal payment record not found:", { referenceId });
-      throw new Error("Payment record not found.");
-    }
-
-    // Update the record with captureId and status
-    await prisma.payment.update({
-      where: { referenceId },
-      data: {
-        captureId,
+    if (isRefund) {
+      await handleRefundUpdate(
+        referenceId,
+        refundId,
         status,
-      },
-    });
-
-    console.log(`PayPal payment ${status.toLowerCase()} for userId: ${userId}`);
-
-    if (type === "Subscription") {
-      await notifySubscriptionService(userId, status, cookies);
+        userId,
+        cookies,
+        rentalID,
+        type
+      );
     } else {
-      if (rentalID !== undefined) {
-        await notifyCycleService(userId, status, cookies, rentalID);
-      }
+      await handlePaymentUpdate(
+        referenceId,
+        status,
+        userId,
+        cookies,
+        type,
+        rentalID,
+        captureId
+      );
     }
   } catch (err: any) {
-    console.error(`Error updating PayPal payment: ${err.message}`);
-    throw new Error("Failed to handle PayPal payment update.");
+    console.error(`Error handling PayPal update: ${err.message}`);
+    throw new Error(`Failed to handle PayPal update.`);
   }
 };
 
-// Notify the subscription service
-const notifySubscriptionService = async (
-  userId: string,
+const handleRefundUpdate = async (
+  referenceId: string,
+  refundId: string | undefined,
   status: string,
-  cookies: string
-) => {
-  try {
-    await axios.post(
-      subscriptionServiceUrl,
-      {
-        userId: parseInt(userId, 10),
-        status,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          cookie: cookies,
-        },
-      }
-    );
-  } catch (err: any) {
-    console.error(`Error notifying subscription service: ${err.message}`);
-    throw new Error("Failed to notify subscription service.");
-  }
-};
-
-const notifyCycleService = async (
   userId: string,
-  status: string,
   cookies: string,
-  rentalID: string
+  rentalID: string | undefined,
+  type: string
 ) => {
-  try {
-    await axios.post(
+  if (!refundId) throw new Error("Missing refund ID for refund update.");
+
+  const refundRecord = await prisma.refund.findUnique({
+    where: { referenceId },
+  });
+  if (!refundRecord) throw new Error("Refund record not found.");
+
+  await prisma.refund.update({
+    where: { referenceId },
+    data: { status },
+  });
+
+  if (type === "Deposit refund" && rentalID) {
+    await notifyService(
       cycleServiceUrl,
       {
         userId: parseInt(userId, 10),
         status,
         rentalID: parseInt(rentalID, 10),
+        type,
       },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          cookie: cookies,
-        },
-      }
+      cookies
     );
-  } catch (err: any) {
-    console.error(`Error notifying Cycle service: ${err.message}`);
-    throw new Error("Failed to notify Cycle service.");
+  }
+};
+
+const handlePaymentUpdate = async (
+  referenceId: string,
+  status: string,
+  userId: string,
+  cookies: string,
+  type: string,
+  rentalID?: string,
+  captureId?: string
+) => {
+  const paymentRecord = await prisma.payment.findUnique({
+    where: { referenceId },
+  });
+  if (!paymentRecord) throw new Error("Payment record not found.");
+
+  const updateData: any = { status };
+  if (captureId) updateData.captureId = captureId;
+
+  await prisma.payment.update({
+    where: { referenceId },
+    data: updateData,
+  });
+
+  if (type === "Subscription") {
+    await notifyService(
+      subscriptionServiceUrl,
+      { userId: parseInt(userId, 10), status },
+      cookies
+    );
+  } else if (type === "Cycle rental" && rentalID) {
+    await notifyService(
+      cycleServiceUrl,
+      {
+        userId: parseInt(userId, 10),
+        status,
+        rentalID: parseInt(rentalID, 10),
+        type,
+      },
+      cookies
+    );
   }
 };

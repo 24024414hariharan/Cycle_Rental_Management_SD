@@ -59,4 +59,5 @@ export interface PaymentRequestDTO {
   cookies: string;
   type: string;
   rentalId: number;
+  transactionType: string;
 }

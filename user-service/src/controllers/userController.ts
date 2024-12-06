@@ -413,6 +413,7 @@ export const payForRental = async (
     }
 
     const amount = rental.totalFare;
+    const transactionType = "Payment";
     const paymentServiceClient = new PaymentServiceClient();
     const paymentRequest: PaymentRequestDTO = {
       userId,
@@ -421,6 +422,7 @@ export const payForRental = async (
       cookies,
       type,
       rentalId,
+      transactionType,
     };
 
     const paymentStatus = await paymentServiceClient.processPayment(
