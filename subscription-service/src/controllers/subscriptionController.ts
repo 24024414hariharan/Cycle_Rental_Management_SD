@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import subscriptionService from "../services/subscriptionService";
 import { asyncHandler } from "../utils/asyncHandler";
 import { AppError } from "../middleware/errorHandler";
@@ -52,7 +52,7 @@ export const updateSubscription = asyncHandler(
 );
 
 export const handleSubscriptionWebhook = asyncHandler(
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const { userId, status } = req.body;
     const cookies = req.headers.cookie || "";
 
@@ -63,16 +63,18 @@ export const handleSubscriptionWebhook = asyncHandler(
       );
     }
 
-    // Update the subscription status based on webhook data
-    await subscriptionService.handleSubscriptionWebhook(
-      userId,
-      status,
-      cookies
-    );
-
-    res.status(200).json({
-      status: "success",
-      message: "Subscription status updated from webhook.",
-    });
+    try {
+      await subscriptionService.handleSubscriptionWebhook(
+        userId,
+        status,
+        cookies
+      );
+      res.status(200).json({
+        status: "success",
+        message: "Subscription status updated from webhook.",
+      });
+    } catch (error) {
+      next(error) // Pass the error to `asyncHandler`
+    }
   }
 );

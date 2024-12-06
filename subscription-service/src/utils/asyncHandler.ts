@@ -8,5 +8,5 @@ type AsyncFunction = (
 
 export const asyncHandler =
   (fn: AsyncFunction) => (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+    Promise.resolve(fn(req, res, next)).catch((error) => next(error));
   };
