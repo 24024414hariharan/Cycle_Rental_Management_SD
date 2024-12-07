@@ -303,6 +303,13 @@ class CycleService {
       },
     });
 
+    await prisma.cycle.update({
+      where: { id: rental?.cycle.id },
+      data: {
+        status: "available",
+      },
+    });
+
     if (!rental) throw new AppError("Rental record not found.", 404);
     if (rental.userId !== userId)
       throw new AppError("Unauthorized action.", 403);

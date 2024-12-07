@@ -16,6 +16,7 @@ import {
   getAvailableCycles,
   calculateFare,
   payForRental,
+  returnCycle,
 } from "../controllers/userController";
 
 import { asyncHandler } from "../utils/asyncHandler";
@@ -91,5 +92,7 @@ router.get(
 router.post("/calculate-fare", validateToken, asyncHandler(calculateFare));
 
 router.post("/pay-rental", validateToken, asyncHandler(payForRental));
+
+router.post("/return-cycle", validateToken, asyncHandler(returnCycle));
 
 export default router;

@@ -7,7 +7,7 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "dateOfBirth" TIMESTAMP(3) NOT NULL,
+    "dateOfBirth" TIMESTAMP(3),
     "phoneNumber" TEXT NOT NULL,
     "identification" TEXT NOT NULL,
     "isVerified" BOOLEAN NOT NULL DEFAULT false,

@@ -62,6 +62,26 @@ class CycleServiceClient {
     );
     return response.data.data;
   }
+
+  async cycleReturn(rentalId: number, cookies: string): Promise<any> {
+    try {
+      const response = await axios.post(
+        `${this.cycleServiceUrl}/cycles/return-cycle`,
+        { rentalId },
+        {
+          headers: {
+            Cookie: cookies,
+          },
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new AppError(
+        error.response?.data?.message || "Failed to return the cycle",
+        error.response?.status || 500
+      );
+    }
+  }
 }
 
 export default new CycleServiceClient();
