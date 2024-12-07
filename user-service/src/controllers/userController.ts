@@ -438,3 +438,37 @@ export const payForRental = async (
     next(error);
   }
 };
+
+export const returnCycle = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { rentalId } = req.body;
+
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new AppError("Unauthorized: User information missing.", 401);
+    }
+
+    const cookies = req.headers.cookie || "";
+    if (!cookies) {
+      return res.status(401).json({ message: "Unauthorized: Missing token" });
+    }
+
+    if (!rentalId) {
+      throw new AppError("Missing required fields: rentalId.", 400);
+    }
+
+    const rental = await cycleServiceClient.cycleReturn(rentalId, cookies);
+
+    res.status(200).json({
+      status: "success",
+      message: "Cycle returned suceessfully",
+      data: rental,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
