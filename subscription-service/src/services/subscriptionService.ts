@@ -5,6 +5,10 @@ import {
   UpdateSubscriptionDTO,
   SubscriptionStatusDTO,
 } from "../dtos/SubscriptionDTO";
+
+import { SubscriptionContext } from "./state/SubscriptionContext";
+import { ActiveSubscriptionState } from "./state/ActiveSubscriptionState";
+import { FailedSubscriptionState } from "./state/FailedSubscriptionState";
 import EmailServiceClient from "../clients/EmailServiceClient";
 import axios from "axios";
 
@@ -158,7 +162,7 @@ class SubscriptionService {
     cookies: string
   ) {
     try {
-      const user = await axios.get(
+      const userResponse = await axios.get(
         `${process.env.USER_URL}/api/users/profile`,
         {
           withCredentials: true,
@@ -168,45 +172,24 @@ class SubscriptionService {
         }
       );
 
+      const userData = userResponse.data.data;
+
+      const subscriptionContext = new SubscriptionContext();
+
       if (status === "Success") {
-        const now = new Date();
-        const endDate = new Date();
-        endDate.setDate(now.getDate() + 30);
-
-        await prisma.subscription.update({
-          where: { userId },
-          data: {
-            isActive: true,
-            status: "Active",
-            startDate: now,
-            endDate,
-          },
-        });
-
-        await EmailServiceClient.sendSubscriptionUpdate(
-          user.data.data.email,
-          user.data.data.name,
-          status
-        );
-
-        console.log(`Subscription activated for user ${userId}`);
+        subscriptionContext.setState(new ActiveSubscriptionState());
       } else if (status === "Failed") {
-        await prisma.subscription.update({
-          where: { userId },
-          data: {
-            isActive: false,
-            status: "Failed",
-          },
-        });
-
-        await EmailServiceClient.sendSubscriptionUpdate(
-          user.data.data.email,
-          user.data.data.name,
-          status
-        );
-
-        console.log(`Subscription update failed for user ${userId}`);
+        subscriptionContext.setState(new FailedSubscriptionState());
+      } else {
+        throw new Error(`Unhandled subscription status: ${status}`);
       }
+      await subscriptionContext.handle(
+        userId,
+        userData,
+        prisma,
+        EmailServiceClient
+      );
+      console.log(`Subscription update failed for user ${userId}`);
     } catch (error) {
       console.error("Error updating subscription from webhook:", error);
       throw new AppError("Failed to update subscription from webhook.", 500);

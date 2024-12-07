@@ -11,7 +11,8 @@ model CycleModel {
   id         Int       @id @default(autoincrement())
   type       String    
   brand      String    
-  hourlyRate Float     
+  hourlyRate Float   
+  deposit     Float?       
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   cycles     Cycle[]

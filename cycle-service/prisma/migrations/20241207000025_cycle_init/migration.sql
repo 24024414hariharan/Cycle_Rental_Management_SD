@@ -4,7 +4,7 @@ CREATE TABLE "CycleModel" (
     "type" TEXT NOT NULL,
     "brand" TEXT NOT NULL,
     "hourlyRate" DOUBLE PRECISION NOT NULL,
-    "deposit" DOUBLE PRECISION NOT NULL DEFAULT 15.0,
+    "deposit" DOUBLE PRECISION,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

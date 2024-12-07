@@ -43,6 +43,10 @@ class CycleService {
 
     const isSubscribed = subscription.data.isActive;
 
+    if (hourlyRate === null || deposit === null) {
+      throw new Error("Hourly rate and deposit cannot be null.");
+    }
+
     let fare: IFare = new BaseFare(hourlyRate, rentalHours, deposit);
     if (isSubscribed) {
       fare = new DiscountPlanDecorator(fare);
@@ -402,6 +406,7 @@ class CycleService {
           actualReturnTime,
           totalFare: rental.totalFare + lateFees,
           balanceDue: additionalPaymentDue,
+          paymentStatus: "Unsettled",
         },
       });
 
@@ -420,10 +425,62 @@ class CycleService {
     userId: number,
     cookies: string
   ): Promise<{ message: string; data: any }> {
-    return {
-      message: `Cycle is damaged`,
-      data: {},
-    };
+    const { expectedReturnTime, cycle } = rental;
+    const deposit = cycle.deposit ?? cycle.model.deposit;
+    const cycleHourRate = cycle.hourlyRate ?? cycle.model.hourlyRate;
+
+    const extraHours = Math.max(
+      0,
+      (actualReturnTime.getTime() - expectedReturnTime.getTime()) /
+        (1000 * 60 * 60)
+    );
+
+    const lateFees = extraHours * (cycleHourRate || 0);
+    const cycleDeposit = deposit || 0;
+
+    if (lateFees <= cycleDeposit) {
+      const refundableDeposit = cycleDeposit - lateFees;
+
+      await prisma.cycleRental.update({
+        where: { id: rental.id },
+        data: {
+          actualReturnTime,
+          totalFare: rental.totalFare + lateFees,
+          balanceDue: 0.0,
+          paymentStatus: "Unsettled",
+        },
+      });
+
+      return {
+        message: `Cycle returned successfully. ${
+          refundableDeposit > 0
+            ? `Refund of €${refundableDeposit.toFixed(
+                2
+              )} needs to be done, but the company team will contact you regarding the cycle damage.`
+            : `No refund due, but the company team will contact you regarding the cycle damage.`
+        }`,
+        data: { refundableDeposit, lateFees },
+      };
+    } else {
+      const additionalPaymentDue = lateFees - cycleDeposit;
+
+      await prisma.cycleRental.update({
+        where: { id: rental.id },
+        data: {
+          actualReturnTime,
+          totalFare: rental.totalFare + lateFees,
+          balanceDue: additionalPaymentDue,
+          paymentStatus: "Unsettled",
+        },
+      });
+
+      return {
+        message: `Cycle returned successfully. Late fees exceeded the deposit. An additional payment of €${additionalPaymentDue.toFixed(
+          2
+        )} is required and will be collected in hand. Also, the company team will contact you regarding the cycle damage.`,
+        data: { additionalPaymentDue, lateFees },
+      };
+    }
   }
 }
 
