@@ -2,5 +2,5 @@ projectKey=CRMS-User-Service
 serverUrl=http://localhost:9000
 serverVersion=24.12.0.100206
 dashboardUrl=http://localhost:9000/dashboard?id=CRMS-User-Service
-ceTaskId=2b5add0f-36c7-4a33-a4be-e4fdf65df062
-ceTaskUrl=http://localhost:9000/api/ce/task?id=2b5add0f-36c7-4a33-a4be-e4fdf65df062
+ceTaskId=f5218b62-fb93-4ebe-8cfc-285cde804610
+ceTaskUrl=http://localhost:9000/api/ce/task?id=f5218b62-fb93-4ebe-8cfc-285cde804610
