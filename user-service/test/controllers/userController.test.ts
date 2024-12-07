@@ -820,4 +820,107 @@ describe("userController", () => {
       expect(next).toHaveBeenCalledWith(expect.any(Error));
     });
   });
+
+  describe("returnCycle", () => {
+    let mockNext: jest.Mock;
+  
+    beforeEach(() => {
+      mockNext = jest.fn();
+      jest.clearAllMocks();
+    });
+  
+    it("should return the cycle successfully", async () => {
+      const req = mockRequest();
+      req.body = { rentalId: 123 };
+      req.user = { userId: 1 };
+      req.headers.cookie = "mock-cookie";
+  
+      const res = mockResponse();
+  
+      jest.spyOn(cycleServiceClient, "cycleReturn").mockResolvedValue({
+        rentalId: 123,
+        status: "Returned",
+        returnTime: "2023-12-07T12:34:56Z",
+      });
+  
+      await userController.returnCycle(req, res, mockNext);
+  
+      expect(cycleServiceClient.cycleReturn).toHaveBeenCalledWith(123, "mock-cookie");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        status: "success",
+        message: "Cycle returned successfully", // Fixed typo
+        data: {
+          rentalId: 123,
+          status: "Returned",
+          returnTime: "2023-12-07T12:34:56Z",
+        },
+      });
+    });
+  
+    it("should return 401 if token is missing", async () => {
+      const req = mockRequest();
+      req.body = { rentalId: 123 };
+      req.user = { userId: 1 };
+      req.headers.cookie = undefined;
+  
+      const res = mockResponse();
+  
+      await userController.returnCycle(req, res, mockNext);
+  
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Unauthorized: Missing token",
+      });
+    });
+  
+    it("should call next with AppError if rentalId is missing", async () => {
+      const req = mockRequest();
+      req.body = {};
+      req.user = { userId: 1 };
+      req.headers.cookie = "mock-cookie";
+  
+      const res = mockResponse();
+  
+      await userController.returnCycle(req, res, mockNext);
+  
+      expect(mockNext).toHaveBeenCalledWith(
+        new AppError("Missing required fields: rentalId.", 400)
+      );
+    });
+  
+    it("should call next with AppError if user is unauthorized", async () => {
+      const req = mockRequest();
+      req.body = { rentalId: 123 };
+      req.user = undefined; // No user info
+      req.headers.cookie = "mock-cookie";
+  
+      const res = mockResponse();
+  
+      await userController.returnCycle(req, res, mockNext);
+  
+      expect(mockNext).toHaveBeenCalledWith(
+        new AppError("Unauthorized: User information missing.", 401)
+      );
+    });
+  
+    it("should call next with error if cycle return fails", async () => {
+      const req = mockRequest();
+      req.body = { rentalId: 123 };
+      req.user = { userId: 1 };
+      req.headers.cookie = "mock-cookie";
+  
+      const res = mockResponse();
+  
+      jest
+        .spyOn(cycleServiceClient, "cycleReturn")
+        .mockRejectedValue(new Error("Cycle return failed"));
+  
+      await userController.returnCycle(req, res, mockNext);
+  
+      expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
+    });
+  });
+  
+  
 });

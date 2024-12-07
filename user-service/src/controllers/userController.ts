@@ -465,7 +465,7 @@ export const returnCycle = async (
 
     res.status(200).json({
       status: "success",
-      message: "Cycle returned suceessfully",
+      message: "Cycle returned successfully",
       data: rental,
     });
   } catch (error) {
