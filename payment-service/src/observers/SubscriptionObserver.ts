@@ -11,8 +11,7 @@ export class SubscriptionObserver implements Observer {
     if (type !== "Subscription") return; // Ensure this observer only handles subscriptions.
 
     if (event === "Success" || event === "Failed") {
-      const { userId, status, cookies, paymentIntentId, orderId, captureId } =
-        data;
+      const { userId, status, cookies, referenceId, captureId } = data;
 
       console.log(
         `[SubscriptionObserver] Notifying subscription service for user ${userId}`
@@ -22,7 +21,7 @@ export class SubscriptionObserver implements Observer {
         if (paymethod === "Stripe") {
           // Pass only relevant data for subscriptions
           await handleStripePaymentUpdate({
-            referenceId: paymentIntentId,
+            referenceId,
             status,
             userId,
             cookies,
@@ -30,7 +29,7 @@ export class SubscriptionObserver implements Observer {
           });
         } else {
           await handlePayPalPaymentUpdate({
-            referenceId: orderId,
+            referenceId,
             status,
             userId,
             captureId,

@@ -27,6 +27,8 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
         const rentalID = paymentIntent.metadata?.rentalID;
         const referenceId = paymentIntent.id;
 
+        console.log(referenceId);
+
         if (!userId) {
           console.error("[Stripe Webhook] Error: Missing userId in metadata.");
           res.status(400).send("Webhook Error: Missing userId.");
