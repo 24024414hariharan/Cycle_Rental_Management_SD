@@ -7,7 +7,7 @@
     "build": "tsc -p tsconfig.build.json",
     "prestart": "npm run build",
     "watch": "tsc -w -p tsconfig.build.json",
-    "serve": "nodemon --restart-on-failure dist/app.js",
+    "serve": "nodemon dist/app.js",
     "start": "concurrently \"npm run watch\" \"npm run serve\"",
     "test": "jest",
     "sonar": "sonar-scanner"
