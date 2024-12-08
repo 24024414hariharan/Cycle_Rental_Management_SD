@@ -25,10 +25,10 @@ export class PayPalPayment implements PaymentStrategy {
           amount: { value: amount.toFixed(2), currency_code: "EUR" },
           custom_id: JSON.stringify({
             userId,
+            type,
             metadata: { cookies },
             ...(rentalID ? { rentalID: rentalID.toString() } : {}),
           }),
-          description: type,
         },
       ],
       application_context: {
@@ -139,30 +139,33 @@ export class PayPalPayment implements PaymentStrategy {
         "Payment record not found for the given transactionId or rentalID."
       );
     }
+    const captureId = payment.captureId;
+
+    if (!captureId) {
+      throw new Error("capture Id is not present");
+    }
 
     await prisma.refund.create({
       data: {
         paymentId: payment.id,
         amount,
         status: "Pending",
-        referenceId: transactionId,
+        referenceId: captureId,
         rentalID,
         userId,
       },
     });
 
-    const refundRequest = new paypal.payments.CapturesRefundRequest(
-      transactionId
-    );
+    const refundRequest = new paypal.payments.CapturesRefundRequest(captureId);
     refundRequest.requestBody({
       amount: amount
         ? { value: amount.toFixed(2), currency_code: "EUR" }
         : undefined,
       custom_id: JSON.stringify({
         userId,
+        type,
         metadata: { cookies },
         ...(rentalID ? { rentalID: rentalID.toString() } : {}),
-        description: type,
       }),
     });
 

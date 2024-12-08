@@ -120,16 +120,13 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
 export const paypalWebhookHandler = async (req: Request, res: Response) => {
   try {
-    const webhookId = process.env.PAYPAL_WEBHOOK_ID;
-    if (!webhookId) {
-      throw new Error("Missing PAYPAL_WEBHOOK_ID in environment variables.");
-    }
-
-    const transmissionId = req.headers["paypal-transmission-id"] as string;
-    const transmissionTime = req.headers["paypal-transmission-time"] as string;
-    const certUrl = req.headers["paypal-cert-url"] as string;
-    const authAlgo = req.headers["paypal-auth-algo"] as string;
-    const transmissionSig = req.headers["paypal-transmission-sig"] as string;
+    const {
+      "paypal-transmission-id": transmissionId,
+      "paypal-transmission-time": transmissionTime,
+      "paypal-cert-url": certUrl,
+      "paypal-auth-algo": authAlgo,
+      "paypal-transmission-sig": transmissionSig,
+    } = req.headers;
 
     if (
       !transmissionId ||
@@ -138,19 +135,14 @@ export const paypalWebhookHandler = async (req: Request, res: Response) => {
       !authAlgo ||
       !transmissionSig
     ) {
-      console.error("[PayPal Webhook] Missing required headers.", {
-        transmissionId,
-        transmissionTime,
-        certUrl,
-        authAlgo,
-        transmissionSig,
-      });
       throw new Error(
         "Missing required PayPal headers for webhook validation."
       );
     }
 
-    const rawBody = JSON.stringify(req.body);
+    const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+    if (!webhookId)
+      throw new Error("Missing PAYPAL_WEBHOOK_ID in environment variables.");
 
     const verificationResponse = await axios.post(
       "https://api-m.sandbox.paypal.com/v1/notifications/verify-webhook-signature",
@@ -172,44 +164,35 @@ export const paypalWebhookHandler = async (req: Request, res: Response) => {
     );
 
     if (verificationResponse.data.verification_status !== "SUCCESS") {
-      console.error(
-        "[PayPal Webhook] Validation failed:",
-        verificationResponse.data
-      );
-      res.status(400).send("Webhook validation failed.");
-      return;
+      throw new Error("Webhook validation failed.");
     }
 
     const event = req.body;
     const captureId = event.resource?.id;
     const referenceId =
       event.resource?.supplementary_data?.related_ids?.order_id;
-    const customData = event.resource?.custom_id;
-    const description = event.resource?.description
-      ? JSON.parse(event.resource.custom_id)
-      : null;
+    const customId = event.resource?.custom_id;
 
-    if (!customData || !customData.userId || !customData.metadata?.cookies) {
-      console.error("[PayPal Webhook] Invalid custom_id format.");
-      res.status(400).send("Webhook Error: Invalid custom_id format.");
-      return;
+    if (!customId || typeof customId !== "string") {
+      throw new Error("Invalid or missing `custom_id` format.");
     }
 
-    const userId = customData.userId;
-    const cookies = customData.metadata.cookies;
-    const type = description;
-    const rentalID = customData.rentalID;
+    const customData = JSON.parse(customId);
+    const { userId, type, metadata, rentalID } = customData;
+
+    if (!userId || !metadata || !metadata.cookies) {
+      throw new Error("Invalid `custom_id` format. Missing required fields.");
+    }
+
+    const cookies = metadata.cookies;
     const paymethod = "PayPal";
 
     if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
       if (!captureId || !userId) {
-        console.error("[PayPal Webhook] Missing captureId or userId.");
-        res.status(400).send("Webhook Error: Missing required fields.");
-        return;
+        throw new Error("Missing required fields: `captureId` or `userId`.");
       }
 
       const status = "Success";
-
       await paymentEventSubject.notify(status, paymethod, {
         referenceId,
         status,
@@ -222,12 +205,6 @@ export const paypalWebhookHandler = async (req: Request, res: Response) => {
 
       console.log(`[PayPal Webhook] Payment success for userId: ${userId}`);
     } else if (event.event_type === "PAYMENT.CAPTURE.DENIED") {
-      if (!captureId || !userId) {
-        console.error("[PayPal Webhook] Missing captureId or userId.");
-        res.status(400).send("Webhook Error: Missing required fields.");
-        return;
-      }
-
       const status = "Failed";
       await paymentEventSubject.notify(status, paymethod, {
         referenceId,
@@ -235,9 +212,65 @@ export const paypalWebhookHandler = async (req: Request, res: Response) => {
         userId,
         cookies,
         captureId,
+        type,
+        rentalID,
       });
 
       console.log(`[PayPal Webhook] Payment failed for userId: ${userId}`);
+    } else if (event.event_type === "PAYMENT.CAPTURE.REFUNDED") {
+      const refund = event.resource;
+      const refundStatus = refund.status;
+      const refundId = refund.id;
+      const refundAmount = parseFloat(refund.amount.value);
+      const refundCurrency = refund.amount.currency_code;
+
+      console.log(refund);
+
+      console.log(
+        `[PayPal Webhook] Refund completed for Refund ID: ${refundId}`
+      );
+
+      const customId = refund.custom_id;
+      if (!customId || typeof customId !== "string") {
+        throw new Error("Invalid or missing `custom_id` in refund event.");
+      }
+
+      let customData;
+      try {
+        customData = JSON.parse(customId);
+      } catch (parseError) {
+        throw new Error(`Failed to parse custom_id`);
+      }
+
+      const { userId, type, metadata, rentalID } = customData;
+      if (!userId || !metadata || !metadata.cookies) {
+        throw new Error("Invalid `custom_id` format. Missing required fields.");
+      }
+
+      const cookies = metadata.cookies;
+      const status = refundStatus === "COMPLETED" ? "Success" : "Failed";
+
+      const captureLink = refund.links?.find(
+        (link: { rel: string }) => link.rel === "up"
+      );
+      const captureId = captureLink?.href.split("/").pop();
+
+      if (!captureId) {
+        throw new Error("Capture ID not found in refund links.");
+      }
+
+      await paymentEventSubject.notify(status, "PayPal", {
+        status,
+        refundId,
+        userId,
+        rentalID,
+        refundAmount,
+        refundCurrency,
+        cookies,
+        isRefund: true,
+        type,
+        referenceId: captureId,
+      });
     } else {
       console.log(`[PayPal Webhook] Unhandled event type: ${event.event_type}`);
     }

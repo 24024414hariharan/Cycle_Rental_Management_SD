@@ -139,7 +139,7 @@ const handleRefundUpdate = async (
 
   await prisma.refund.update({
     where: { referenceId },
-    data: { status },
+    data: { status, refundId },
   });
 
   if (type === "Deposit refund" && rentalID) {
