@@ -1,18 +1,6 @@
-import paypal from "@paypal/checkout-server-sdk";
-
-// Configure PayPal environment
-const environment =
+const PAYPAL_API_BASE_URL =
   process.env.NODE_ENV === "production"
-    ? new paypal.core.LiveEnvironment(
-        process.env.PAYPAL_CLIENT_ID as string,
-        process.env.PAYPAL_CLIENT_SECRET as string
-      )
-    : new paypal.core.SandboxEnvironment(
-        process.env.PAYPAL_CLIENT_ID as string,
-        process.env.PAYPAL_CLIENT_SECRET as string
-      );
+    ? "https://api-m.paypal.com"
+    : "https://api-m.sandbox.paypal.com";
 
-// Initialize PayPal client
-const client = new paypal.core.PayPalHttpClient(environment);
-
-export default client;
+export default PAYPAL_API_BASE_URL;
