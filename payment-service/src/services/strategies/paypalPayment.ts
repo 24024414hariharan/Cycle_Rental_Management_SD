@@ -1,7 +1,8 @@
-import { PaymentStrategy } from "./paymentStrategy";
-import paypal from "@paypal/checkout-server-sdk";
-import client from "../../clients/paypalClient";
+import axios from "axios";
 import prisma from "../../clients/prisma";
+import { PaymentStrategy } from "../strategies/paymentStrategy";
+import PAYPAL_API_BASE_URL from "../../clients/paypalClient";
+import { getAccessToken } from "../../utils/paypalUtils";
 
 export class PayPalPayment implements PaymentStrategy {
   async processPayment(
@@ -17,29 +18,44 @@ export class PayPalPayment implements PaymentStrategy {
       );
     }
 
-    const request = new paypal.orders.OrdersCreateRequest();
-    request.requestBody({
-      intent: "CAPTURE",
-      purchase_units: [
-        {
-          amount: { value: amount.toFixed(2), currency_code: "EUR" },
-          custom_id: JSON.stringify({
-            userId,
-            type,
-            metadata: { cookies },
-            ...(rentalID ? { rentalID: rentalID.toString() } : {}),
-          }),
-        },
-      ],
-      application_context: {
-        return_url: `${process.env.PAYMENT_SERVICE_URL}/capture`,
-      },
-    });
-
     try {
-      const order = await client.execute(request);
+      const accessToken = await getAccessToken();
 
-      const approvalUrl = order.result.links?.find(
+      const response = await axios.post(
+        `${PAYPAL_API_BASE_URL}/v2/checkout/orders`,
+        {
+          intent: "CAPTURE",
+          purchase_units: [
+            {
+              amount: {
+                currency_code: "EUR",
+                value: amount.toFixed(2),
+              },
+              custom_id: JSON.stringify({
+                userId,
+                type,
+                metadata: { cookies },
+                ...(rentalID ? { rentalID: rentalID.toString() } : {}),
+              }),
+            },
+          ],
+          application_context: {
+            return_url: `${process.env.PAYMENT_SERVICE_URL}/capture`,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const order = response.data;
+
+      console.log("PayPal order links:", order.links);
+
+      const approvalUrl = order.links?.find(
         (link: { rel: string; href: string }) => link.rel === "approve"
       )?.href;
 
@@ -47,36 +63,31 @@ export class PayPalPayment implements PaymentStrategy {
         throw new Error("Approval link not found in PayPal response.");
       }
 
-      console.log("Order created:", order.result);
-
       await prisma.payment.create({
         data: {
           userId,
           method: "PayPal",
           amount,
           type,
-          referenceId: order.result.id,
+          referenceId: order.id,
           status: "Pending",
           rentalID,
         },
       });
 
-      console.log(type);
-
       return {
-        orderId: order.result.id,
+        orderId: order.id,
         approvalUrl,
       };
     } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error creating PayPal order:", error.message);
-        throw new Error("Failed to process PayPal payment");
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error:", error.response?.data || error.message);
+      } else if (error instanceof Error) {
+        console.error("Error:", error.message);
       } else {
         console.error("Unexpected error:", error);
-        throw new Error(
-          "An unknown error occurred while processing PayPal payment"
-        );
       }
+      throw new Error("Failed to process PayPal payment.");
     }
   }
 
@@ -85,34 +96,39 @@ export class PayPalPayment implements PaymentStrategy {
       throw new Error("Order ID is required to capture payment.");
     }
 
-    const request = new paypal.orders.OrdersCaptureRequest(orderId);
-    request.requestBody({});
-
     try {
-      const captureResponse = await client.execute(request);
-      const captureId =
-        captureResponse.result.purchase_units[0].payments?.captures?.[0]?.id;
+      const accessToken = await getAccessToken();
 
-      if (!captureId) {
-        throw new Error("Capture ID not found in the capture response");
-      }
+      const response = await axios.post(
+        `${PAYPAL_API_BASE_URL}/v2/checkout/orders/${orderId}/capture`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      console.log("Payment captured successfully:", captureId);
+      const capture = response.data;
 
-      return {
-        captureId,
-        details: captureResponse.result,
-      };
+      await prisma.payment.update({
+        where: { referenceId: orderId },
+        data: { status: "Captured" },
+      });
+
+      console.log("Payment captured successfully:", capture);
+
+      return capture;
     } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error capturing PayPal payment:", error.message);
-        throw new Error("Failed to capture PayPal payment");
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error:", error.response?.data || error.message);
+      } else if (error instanceof Error) {
+        console.error("Error:", error.message);
       } else {
         console.error("Unexpected error:", error);
-        throw new Error(
-          "An unknown error occurred while capturing PayPal payment"
-        );
       }
+      throw new Error("Failed to capture PayPal payment.");
     }
   }
 
@@ -128,61 +144,80 @@ export class PayPalPayment implements PaymentStrategy {
       throw new Error("Transaction ID is required for refund.");
     }
 
-    const payment = await prisma.payment.findFirst({
-      where: {
-        OR: [{ referenceId: transactionId }, { rentalID }],
-      },
-    });
-
-    if (!payment) {
-      throw new Error(
-        "Payment record not found for the given transactionId or rentalID."
-      );
-    }
-    const captureId = payment.captureId;
-
-    if (!captureId) {
-      throw new Error("capture Id is not present");
-    }
-
-    await prisma.refund.create({
-      data: {
-        paymentId: payment.id,
-        amount,
-        status: "Pending",
-        referenceId: captureId,
-        rentalID,
-        userId,
-      },
-    });
-
-    const refundRequest = new paypal.payments.CapturesRefundRequest(captureId);
-    refundRequest.requestBody({
-      amount: amount
-        ? { value: amount.toFixed(2), currency_code: "EUR" }
-        : undefined,
-      custom_id: JSON.stringify({
-        userId,
-        type,
-        metadata: { cookies },
-        ...(rentalID ? { rentalID: rentalID.toString() } : {}),
-      }),
-    });
-
     try {
-      const refund = await client.execute(refundRequest);
-      console.log("Refund created:", refund.result);
-      return refund.result;
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error creating PayPal refund:", error.message);
-        throw new Error("Failed to create PayPal refund");
-      } else {
-        console.error("Unexpected error:", error);
+      const payment = await prisma.payment.findFirst({
+        where: {
+          OR: [{ referenceId: transactionId }, { rentalID }],
+        },
+      });
+
+      if (!payment) {
         throw new Error(
-          "An unknown error occurred while processing the PayPal refund"
+          "Payment record not found for the given transactionId or rentalID."
         );
       }
+
+      const captureId = payment.captureId;
+      if (!captureId) {
+        throw new Error("Capture ID is missing for the payment.");
+      }
+
+      await prisma.refund.create({
+        data: {
+          paymentId: payment.id,
+          amount,
+          status: "Pending",
+          referenceId: captureId,
+          rentalID,
+          userId,
+        },
+      });
+
+      const accessToken = await getAccessToken();
+
+      const response = await axios.post(
+        `${PAYPAL_API_BASE_URL}/v2/payments/captures/${captureId}/refund`,
+        {
+          amount: {
+            value: amount.toFixed(2),
+            currency_code: "EUR",
+          },
+          custom_id: JSON.stringify({
+            userId,
+            type,
+            metadata: { cookies },
+            ...(rentalID ? { rentalID: rentalID.toString() } : {}),
+          }),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const refund = response.data;
+
+      console.log("PayPal refund links:", refund.links);
+
+      await prisma.refund.update({
+        where: { referenceId: captureId },
+        data: { status: "Completed" },
+      });
+
+      console.log("Refund created successfully:", refund);
+
+      return refund;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error:", error.response?.data || error.message);
+      } else if (error instanceof Error) {
+        console.error("Error:", error.message);
+      } else {
+        console.error("Unexpected error:", error);
+      }
+      throw new Error("Failed to process PayPal refund.");
     }
   }
 }
