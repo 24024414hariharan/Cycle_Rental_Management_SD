@@ -120,6 +120,19 @@ Runs OWASP Dependency Check to detect vulnerabilities in the project's dependenc
 - Unit and integration tests are written with `jest`.
 - HTTP endpoint testing uses `supertest`.
 
+## Git Commit and Branch Formats
+- **Commit Messages**:
+  ```
+  feat(CRMS-00): <CommitMessage>
+  ```
+  Example: `feat(CRMS-42): Add user authentication endpoint`
+
+- **Branch Names**:
+  ```
+  feat/CRMS-00_feature_name
+  ```
+  Example: `feat/CRMS-42_add_authentication`
+
 ## Code Maintainers
 | Name                     | Student ID   | Batch       |
 |--------------------------|--------------|-------------|
@@ -127,7 +140,6 @@ Runs OWASP Dependency Check to detect vulnerabilities in the project's dependenc
 | Prasanth Ramaswamy       | 24134252     | 2024-25     |
 | Ridu Viknesh Rajendran   | 24088722     | 2024-25     |
 | Rehith Bhagwanth         | 24071013     | 2024-25     |
-
 
 ## License
 This project is licensed under the ISC License. See the LICENSE file for more details.
