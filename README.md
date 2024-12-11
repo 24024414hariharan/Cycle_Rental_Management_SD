@@ -43,8 +43,8 @@ Each microservice must include a `sonar-project.properties` file for SonarQube c
 
 ```properties
 # SonarQube Project Metadata
-sonar.projectKey=CRMS-User-Service
-sonar.projectName=CRMS-User-Service
+sonar.projectKey=<project-name>
+sonar.projectName=<project-name>
 sonar.projectVersion=1.0
 
 # Paths to Sources and Tests
