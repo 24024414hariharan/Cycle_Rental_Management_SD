@@ -120,5 +120,14 @@ Runs OWASP Dependency Check to detect vulnerabilities in the project's dependenc
 - Unit and integration tests are written with `jest`.
 - HTTP endpoint testing uses `supertest`.
 
+## Code Maintainers
+| Name                     | Student ID   | Batch       |
+|--------------------------|--------------|-------------|
+| Hari Haran Rathinakumar  | 24024414     | 2024-25     |
+| Prasanth Ramaswamy       | 24134252     | 2024-25     |
+| Ridu Viknesh Rajendran   | 24088722     | 2024-25     |
+| Rehith Bhagwanth         | 24071013     | 2024-25     |
+
+
 ## License
 This project is licensed under the ISC License. See the LICENSE file for more details.
