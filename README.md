@@ -1,3 +1,4 @@
+
 # Microservices Common Documentation
 
 ## Overview
@@ -32,11 +33,36 @@ This repository contains a set of Node.js microservices built to handle various 
 ## Configuration
 1. Create a `.env` file in the root directory of each microservice with the following variables:
    ```env
+   NODE_ENV=<environment>
    DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<database>
    JWT_SECRET=<your-secret>
    PORT=<microservice-port>
+   JWT_VERIFICATION_EXPIRY=<expiry>
+   JWT_SESSION_EXPIRY=<session-expiry>
+
+   #Below for Respective services
+
+   BREVO_FROM_EMAIL=<from-mail-id>
+   BREVO_API_KEY=<your-bravo-api-key>
+   PAYPAL_CLIENT_ID=<your-paypal-client-id>
+   PAYPAL_CLIENT_SECRET=<your-paypal-client-secret>
+   STRIPE_SECRET_KEY=<your-stripe-secret-key>
    ```
 2. Update the `prisma/schema.prisma` file in each microservice if required.
+
+## Third-Party Services
+This project integrates with the following third-party services:
+
+1. **Bravo - Email Services**
+   - URL: [Bravo](https://app.brevo.com/)
+   - Purpose: Handles email notifications and transactional emails.
+
+2. **PayPal and Stripe - Payment Services**
+   - **PayPal**: [PayPal Dashboard](https://developer.paypal.com/dashboard/)
+   - **Stripe**: [Stripe Dashboard](https://dashboard.stripe.com/)
+   - Purpose: Facilitates payment processing and secure transactions.
+
+Make sure to add the necessary API keys and tokens for these services in the `.env` file as shown in the configuration section.
 
 ## SonarQube Integration
 Each microservice must include a `sonar-project.properties` file for SonarQube configuration. Below is an example configuration:
@@ -133,6 +159,53 @@ Runs OWASP Dependency Check to detect vulnerabilities in the project's dependenc
   ```
   Example: `feat/CRMS-42_add_authentication`
 
+
+## Prisma Migrations and Code Generation
+Prisma is used as the ORM for database interactions. Follow these steps to manage database schema and generate the necessary client code:
+
+### Initializing Prisma
+To set up Prisma in a new microservice:
+```
+npx prisma init
+```
+### Creating a Migration
+To make changes to the database schema:
+
+Modify the schema.prisma file to define your database models.
+Create a new migration:
+```
+npx prisma migrate dev --name <migration-name>
+```
+Replace <migration-name> with a descriptive name for the changes.
+
+### Applying Migrations
+To apply existing migrations to the database:
+```
+npx prisma migrate deploy
+```
+### Generating Prisma Client
+To regenerate the Prisma Client after changes to the schema:
+```
+npx prisma generate
+```
+This command updates the auto-generated client code in the node_modules/.prisma directory.
+
+### Example Workflow
+Update the schema.prisma file.
+Run:
+```
+npx prisma migrate dev --name <migration-name>
+npx prisma generate
+```
+Use the updated Prisma Client in your code.
+
+### Resetting the Database
+To reset the database and apply all migrations from scratch:
+```
+npx prisma migrate reset
+```
+*Note:* This will delete all data in your database.
+
 ## Code Maintainers
 | Name                     | Student ID   | Batch       |
 |--------------------------|--------------|-------------|
@@ -141,5 +214,4 @@ Runs OWASP Dependency Check to detect vulnerabilities in the project's dependenc
 | Ridu Viknesh Rajendran   | 24088722     | 2024-25     |
 | Rehith Bhagwanth         | 24071013     | 2024-25     |
 
-## License
-This project is licensed under the ISC License. See the LICENSE file for more details.
+
