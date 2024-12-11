@@ -38,6 +38,33 @@ This repository contains a set of Node.js microservices built to handle various 
    ```
 2. Update the `prisma/schema.prisma` file in each microservice if required.
 
+## SonarQube Integration
+Each microservice must include a `sonar-project.properties` file for SonarQube configuration. Below is an example configuration:
+
+```properties
+# SonarQube Project Metadata
+sonar.projectKey=CRMS-User-Service
+sonar.projectName=CRMS-User-Service
+sonar.projectVersion=1.0
+
+# Paths to Sources and Tests
+sonar.sources=src
+sonar.tests=test
+sonar.inclusions=src/**/*.ts
+
+# Exclusions to Avoid Noise
+sonar.exclusions=node_modules/**,dist/**,coverage/**,test/**
+
+# Coverage and Test Reports
+sonar.typescript.lcov.reportPaths=coverage/lcov.info
+sonar.testExecutionReportPaths=coverage/test-report.xml
+
+# SonarQube Server and Authentication
+sonar.host.url=http://localhost:9000
+sonar.login=<key>
+```
+Replace `<key>` with the specific SonarQube project key.
+
 ## Scripts
 The following scripts are commonly defined in the `package.json` of each microservice:
 
