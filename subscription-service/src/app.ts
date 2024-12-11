@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 
 const app = express();
+app.disable('x-powered-by');
 
 app.use(
   cors({
@@ -31,7 +32,7 @@ app.use((req: Request, res: Response) => {
 
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 7000;
+const PORT = process.env.PORT ?? 7000;
 
 app.listen(PORT, () => {
   console.log(`Subscription Service is running on port ${PORT}`);

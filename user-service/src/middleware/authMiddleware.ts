@@ -22,7 +22,7 @@ export const validateToken = async (
     const decoded = verifyToken(token);
     req.user = {
       userId: Number(decoded.userId),
-      role: decoded.role || "CUSTOMER",
+      role: decoded.role ?? "CUSTOMER",
     };
     next();
   } catch (error) {
@@ -32,7 +32,7 @@ export const validateToken = async (
 
 export const authorizeRoles = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!roles.includes(req.user?.role || "")) {
+    if (!roles.includes(req.user?.role ?? "")) {
       throw new AppError("Unauthorized: Insufficient permissions.", 403);
     }
     next();

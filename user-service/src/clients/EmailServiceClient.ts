@@ -5,11 +5,11 @@ import { AppError } from "../middleware/errorHandler";
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 class EmailServiceClient {
-  private emailServiceUrl: string;
+  private readonly emailServiceUrl: string;
 
   constructor() {
     this.emailServiceUrl =
-      process.env.EMAIL_SERVICE_URL ||
+      process.env.EMAIL_SERVICE_URL ??
       "http://localhost:4000/api/email/send-verification";
   }
 

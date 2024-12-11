@@ -31,7 +31,7 @@ export const updateSubscription = asyncHandler(
     }
 
     const { isActive, plan, paymentMethod } = req.body;
-    const cookies = req.headers.cookie || "";
+    const cookies = req.headers.cookie ?? "";
 
     const subscription = await subscriptionService.updateSubscription(
       userId,
@@ -54,7 +54,7 @@ export const updateSubscription = asyncHandler(
 export const handleSubscriptionWebhook = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { userId, status } = req.body;
-    const cookies = req.headers.cookie || "";
+    const cookies = req.headers.cookie ?? "";
 
     if (!userId || !status) {
       throw new AppError(

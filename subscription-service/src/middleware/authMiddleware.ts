@@ -20,7 +20,7 @@ export const validateToken = async (
     const decoded = verifyToken(token);
     req.user = {
       userId: Number(decoded.userId),
-      role: decoded.role || "CUSTOMER",
+      role: decoded.role ?? "CUSTOMER",
     };
     console.log(req.user.userId);
     next();

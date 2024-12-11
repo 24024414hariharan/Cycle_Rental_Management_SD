@@ -1,8 +1,8 @@
 import axios from "axios";
 
 class PaymentServiceClient {
-  private paymentServiceUrl =
-    process.env.PAYMENT_SERVICE_URL || "http://localhost:8000/api/payments";
+  private readonly paymentServiceUrl =
+    process.env.PAYMENT_SERVICE_URL ?? "http://localhost:8000/api/payments";
 
   async processPayment(
     userId: number,

@@ -8,6 +8,7 @@ import { errorHandler } from "./middleware/errorHandler";
 dotenv.config();
 
 const app = express();
+app.disable('x-powered-by');
 
 app.use(
   cors({
@@ -32,7 +33,7 @@ app.use((req: Request, res: Response) => {
 
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT ?? 3000;
 
 app.listen(PORT, () => {
   console.log(`User Service is running on port ${PORT}`);

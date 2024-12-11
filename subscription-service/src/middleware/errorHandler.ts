@@ -30,7 +30,7 @@ export const errorHandler = (
 
   
   if (!(err instanceof AppError)) {
-    console.error(err.stack || err);
+    console.error(err.stack ?? err);
   }
 
   res.status(statusCode).json({

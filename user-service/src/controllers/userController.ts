@@ -270,7 +270,7 @@ export const getSubscriptionStatus = async (
       throw new AppError("Unauthorized: User information missing.", 401);
     }
 
-    const cookies = req.headers.cookie || "";
+    const cookies = req.headers.cookie ?? "";
 
     const subscriptionStatus =
       await subscriptionServiceClient.getSubscriptionStatus(userId, cookies);
@@ -295,7 +295,7 @@ export const updateSubscription = async (
       throw new AppError("Unauthorized: User information missing.", 401);
     }
 
-    const cookies = req.headers.cookie || "";
+    const cookies = req.headers.cookie ?? "";
 
     const { isActive, plan, paymentMethod } = req.body;
 
@@ -326,7 +326,7 @@ export const getAvailableCycles = async (
   try {
     const { location, type, status, brand } = req.query;
 
-    const cookies = req.headers.cookie || "";
+    const cookies = req.headers.cookie ?? "";
 
     const filters = {
       location: typeof location === "string" ? location : undefined,
@@ -357,7 +357,7 @@ export const calculateFare = async (
   try {
     const { cycleId, rentalHours } = req.body as FareRequestDTO;
 
-    const cookies = req.headers.cookie || "";
+    const cookies = req.headers.cookie ?? "";
     if (!cookies) {
       return res.status(401).json({ message: "Unauthorized: Missing token" });
     }
@@ -391,7 +391,7 @@ export const payForRental = async (
       throw new AppError("Unauthorized: User information missing.", 401);
     }
 
-    const cookies = req.headers.cookie || "";
+    const cookies = req.headers.cookie ?? "";
     if (!cookies) {
       return res.status(401).json({ message: "Unauthorized: Missing token" });
     }
@@ -452,7 +452,7 @@ export const returnCycle = async (
       throw new AppError("Unauthorized: User information missing.", 401);
     }
 
-    const cookies = req.headers.cookie || "";
+    const cookies = req.headers.cookie ?? "";
     if (!cookies) {
       return res.status(401).json({ message: "Unauthorized: Missing token" });
     }

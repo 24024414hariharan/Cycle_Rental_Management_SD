@@ -3,7 +3,7 @@ import { PaymentRequestDTO } from "../dtos/UserRegistrationDTO";
 
 export class PaymentServiceClient {
   private paymentServiceUrl =
-    process.env.PAYMENT_SERVICE_URL || "http://localhost:8000/api/payments";
+    process.env.PAYMENT_SERVICE_URL ?? "http://localhost:8000/api/payments";
 
   async processPayment(
     request: PaymentRequestDTO
